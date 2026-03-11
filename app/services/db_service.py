@@ -36,25 +36,30 @@ class DBService:
     def _connect(self):
         if self._connected and self._conn:
             try:
-                # Quick health check
+                # Health check
                 self._conn.execute("SELECT 1")
                 return True
-            except Exception:
+            except Exception as e:
+                logger.warning(f"Connection lost, re-establishing... ({e})")
                 self._connected = False
                 self._conn = None
 
         if not SQLITE_CLOUD_URL or "REPLACE_WITH" in SQLITE_CLOUD_URL:
-            logger.warning("SQLITE_CLOUD_URL not configured")
+            logger.warning("SQLITE_CLOUD_URL not configured in environment variables.")
             return False
             
         try:
+            logger.info(f"Attempting to connect to SQLite Cloud...")
             self._conn = sqlitecloud.connect(SQLITE_CLOUD_URL)
             self._setup_tables()
             self._connected = True
-            logger.info("Connected to SQLite Cloud")
+            logger.info("Successfully connected to SQLite Cloud node.")
             return True
         except Exception as e:
-            logger.error(f"SQLite Cloud connection failed: {e}")
+            logger.error(f"FATAL: SQLite Cloud connection failed. Error: {str(e)}")
+            # If it's a socket error, it might be transient or network related
+            if "socket" in str(e).lower():
+                logger.error("Network/Socket initialization error. Please check your firewall and internet connection.")
             self._connected = False
             return False
 

@@ -97,12 +97,12 @@
     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem; margin-bottom: 2.5rem;">
         <!-- Leads Chart -->
         <div class="chart-card">
-            <div class="chart-title"><i class="fas fa-chart-bar"></i> Leads Charts <span class="chart-badge growth">Growth</span></div>
+            <div class="chart-title"><i class="fas fa-chart-bar"></i> Leads Chart <span class="chart-badge growth">Growth</span></div>
             <canvas id="leadsChart" height="140"></canvas>
         </div>
         <!-- Deals Chart -->
         <div class="chart-card">
-            <div class="chart-title"><i class="fas fa-handshake"></i> Deals Charts</div>
+            <div class="chart-title"><i class="fas fa-handshake"></i> Deals Chart</div>
             <canvas id="dealsChart" height="140"></canvas>
         </div>
         <!-- Conversion Chart -->
@@ -128,14 +128,14 @@
                     <thead>
                         <tr style="background: rgba(0,0,0,0.2);">
                             <th style="padding: 1rem 1.5rem; text-align: left; font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em;">Name</th>
-                            <th style="padding: 1rem 1.5rem; text-align: left; font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em;">Name</th>
+                            <th style="padding: 1rem 1.5rem; text-align: left; font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em;">Company</th>
                             <th style="padding: 1rem 1.5rem; text-align: left; font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em;">Status</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% if recent_contacts %}
                         {% for contact in recent_contacts %}
-                        <tr class="leads-row" style="cursor: pointer;" onclick="viewContact('{{ contact.name }}','{{ contact.email }}','{{ contact.phone }}','{{ contact.company }}','{{ contact.interest }}','{{ contact.email2 or '[]' }}','{{ contact.social_media or '[]' }}')">
+                        <tr class="leads-row" style="cursor: pointer;" onclick="viewContact({{ contact.name|tojson|safe }}, {{ contact.email|tojson|safe }}, {{ contact.phone|tojson|safe }}, {{ contact.company|tojson|safe }}, {{ contact.interest|tojson|safe }}, {{ (contact.email2 or '[]')|tojson|safe }}, {{ (contact.social_media or '[]')|tojson|safe }})">
                             <td style="padding: 1rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.03);">
                                 <div style="display: flex; align-items: center; gap: 0.8rem;">
                                     <img src="https://ui-avatars.com/api/?name={{ (contact.name or contact.email or 'U')|urlencode }}&background=6366f1&color=fff&bold=true&size=64" style="width: 38px; height: 38px; border-radius: 10px; border: 2px solid rgba(99,102,241,0.3);">
@@ -525,7 +525,7 @@ new Chart(document.getElementById('leadsChart'), {
     type: 'bar',
     data: {
         labels: months,
-        datasets: [{ label: 'Leads', data: [24, 35, 28, 42, 55, 48, 70, 88, {{ contacts_count }}], backgroundColor: 'rgba(99,102,241,0.6)', borderRadius: 6, borderSkipped: false }]
+        datasets: [{ label: 'Leads', data: [24, 35, 28, 42, 55, 48, 70, 88, Number("{{ contacts_count }}")], backgroundColor: 'rgba(99,102,241,0.6)', borderRadius: 6, borderSkipped: false }]
     },
     options: {...chartDefaults}
 });
@@ -535,7 +535,7 @@ new Chart(document.getElementById('dealsChart'), {
     type: 'line',
     data: {
         labels: months,
-        datasets: [{ label: 'Deals', data: [5, 8, 12, 10, 18, 22, 28, 35, {{ [messages_count, 1]|max }}], borderColor: '#8b5cf6', backgroundColor: 'rgba(139,92,246,0.1)', tension: 0.4, fill: true, pointBackgroundColor: '#8b5cf6', pointRadius: 3, pointHoverRadius: 6 }]
+        datasets: [{ label: 'Deals', data: [5, 8, 12, 10, 18, 22, 28, 35, Number("{{ [messages_count, 1]|max }}")], borderColor: '#8b5cf6', backgroundColor: 'rgba(139,92,246,0.1)', tension: 0.4, fill: true, pointBackgroundColor: '#8b5cf6', pointRadius: 3, pointHoverRadius: 6 }]
     },
     options: {...chartDefaults}
 });
@@ -559,7 +559,7 @@ function makeSparkline(id, data, color) {
     });
 }
 makeSparkline('sparkline1', [12,18,15,22,28,25,35,38,42], 'rgba(99,102,241,0.8)');
-makeSparkline('sparkline2', [24,30,28,40,50,44,60,72,{{ contacts_count }}], 'rgba(139,92,246,0.8)');
-makeSparkline('sparkline3', [5,8,6,12,15,18,22,28,{{ [messages_count,1]|max }}], 'rgba(16,185,129,0.8)');
+makeSparkline('sparkline2', [24,30,28,40,50,44,60,72, Number("{{ contacts_count }}")], 'rgba(139,92,246,0.8)');
+makeSparkline('sparkline3', [5,8,6,12,15,18,22,28, Number("{{ [messages_count,1]|max }}")], 'rgba(16,185,129,0.8)');
 </script>
 {% endblock %}
