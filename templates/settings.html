@@ -1,0 +1,629 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="fade-in">
+    <div class="welcome-section"
+        style="margin-bottom: 2.5rem; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 2rem;">
+        <h1
+            style="font-size: 2.5rem; font-weight: 800; color: var(--text-main); letter-spacing: -0.05em; margin-bottom: 0.5rem;">
+            Settings & Configuration</h1>
+        <p style="color: var(--text-dim); font-size: 1.1rem; line-height: 1.6;">Configure your external integrations,
+            system preferences,
+            and personal profile to get the most out of your CRM.</p>
+    </div>
+
+    <form action="{{ url_for('main.settings') }}" method="POST" id="settingsForm">
+        <div class="settings-layout">
+            <!-- Left Column: Integrations -->
+            <div class="settings-column">
+                <h2 class="section-title"><i class="fas fa-plug"></i> API Integrations</h2>
+
+                <!-- NLP Engine -->
+                <div class="card settings-card">
+                    <div class="card-header">
+                        <div class="icon-wrapper icon-purple"><i class="fas fa-brain"></i></div>
+                        <div>
+                            <h3>NLP Engine</h3>
+                            <p class="help-text">Power the AI CRM extraction.</p>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label>Hugging Face API Key</label>
+                            <div class="input-with-icon">
+                                <input type="password" id="hfApiKey" name="HF_API_KEY"
+                                    placeholder="hf_xxxxxxxxxxxxxxxxx" class="settings-input"
+                                    value="{{ settings.get('HF_API_KEY', '') }}">
+                                <button type="button" class="visibility-toggle"
+                                    onclick="toggleVisibility('hfApiKey', this)"><i class="fas fa-eye"></i></button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Model Choice</label>
+                            <select name="HF_MODEL" class="settings-input">
+                                <option value="Qwen/Qwen2.5-7B-Instruct" {% if
+                                    settings.get('HF_MODEL')=='Qwen/Qwen2.5-7B-Instruct' %}selected{% endif %}>Qwen 2.5
+                                    7B Instruct (Recommended)</option>
+                                <option value="Qwen/Qwen2.5-1.5B-Instruct" {% if
+                                    settings.get('HF_MODEL')=='Qwen/Qwen2.5-1.5B-Instruct' %}selected{% endif %}>Qwen
+                                    2.5 1.5B (Fast)</option>
+                                <option value="meta-llama/Llama-3.2-3B-Instruct" {% if
+                                    settings.get('HF_MODEL')=='meta-llama/Llama-3.2-3B-Instruct' %}selected{% endif %}>
+                                    Llama 3.2 3B</option>
+                            </select>
+                            <small class="field-hint">Heavier models offer better extraction accuracy but may be
+                                slower.</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Google Workspace -->
+                <div class="card settings-card">
+                    <div class="card-header">
+                        <div class="icon-wrapper icon-red"><i class="fab fa-google"></i></div>
+                        <div>
+                            <h3>Google Workspace</h3>
+                            <p class="help-text">Sync emails and calendar events.</p>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div style="margin-bottom: 1.5rem; padding: 1rem; background: rgba(0,0,0,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: space-between;">
+                            <div>
+                                <span style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.2rem;">Account Status</span>
+                                {% if google_auth_status %}
+                                <span class="badge badge-success" style="padding: 0.4rem 0.8rem; border-radius: 6px; font-weight: 700;"><i class="fas fa-check-circle"></i> Synced</span>
+                                {% else %}
+                                <span class="badge badge-secondary" style="padding: 0.4rem 0.8rem; border-radius: 6px; font-weight: 700;"><i class="fas fa-times-circle"></i> Not Synced</span>
+                                {% endif %}
+                            </div>
+                            <a href="{{ url_for('main.google_auth') }}" class="btn btn-secondary" style="font-size: 0.85rem; padding: 0.6rem 1.2rem; border-radius: 8px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: #f87171;">
+                                <i class="fas fa-sync-alt"></i> {% if google_auth_status %}Re-sync Account{% else %}Sync Account{% endif %}
+                            </a>
+                        </div>
+                        <div class="form-group">
+                            <label>OAuth Client ID</label>
+                            <input type="text" name="GOOGLE_CLIENT_ID"
+                                placeholder="your-client-id.apps.googleusercontent.com" class="settings-input"
+                                value="{{ settings.get('GOOGLE_CLIENT_ID', '') }}">
+                        </div>
+                        <div class="form-group">
+                            <label>OAuth Client Secret</label>
+                            <div class="input-with-icon">
+                                <input type="password" id="gClientSecret" name="GOOGLE_CLIENT_SECRET"
+                                    placeholder="GOCSPX-xxxxxxxxxxxxxxxxx" class="settings-input"
+                                    value="{{ settings.get('GOOGLE_CLIENT_SECRET', '') }}">
+                                <button type="button" class="visibility-toggle"
+                                    onclick="toggleVisibility('gClientSecret', this)"><i
+                                        class="fas fa-eye"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- WhatsApp -->
+                <div class="card settings-card">
+                    <div class="card-header">
+                        <div class="icon-wrapper icon-green"><i class="fab fa-whatsapp"></i></div>
+                        <div>
+                            <h3>WhatsApp Business</h3>
+                            <p class="help-text">Automate lead capture from incoming messages.</p>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label>Permanent Access Token</label>
+                            <div class="input-with-icon">
+                                <input type="password" id="waApiKey" name="WHATSAPP_API_KEY" placeholder="EAAxxxxxxx"
+                                    class="settings-input" value="{{ settings.get('WHATSAPP_API_KEY', '') }}">
+                                <button type="button" class="visibility-toggle"
+                                    onclick="toggleVisibility('waApiKey', this)"><i class="fas fa-eye"></i></button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Webhook Verification Token</label>
+                            <input type="text" name="WHATSAPP_WEBHOOK" placeholder="Custom verification token"
+                                class="settings-input" value="{{ settings.get('WHATSAPP_WEBHOOK', '') }}">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Zoom Meetings -->
+                <div class="card settings-card">
+                    <div class="card-header">
+                        <div class="icon-wrapper icon-blue"><i class="fas fa-video"></i></div>
+                        <div>
+                            <h3>Zoom Meetings</h3>
+                            <p class="help-text">Configure Webhook to ingest transcripts automatically.</p>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label>Zoom Webhook Secret Token</label>
+                            <div class="input-with-icon">
+                                <input type="password" id="zoomSecret" name="ZOOM_WEBHOOK_SECRET"
+                                    placeholder="Your Secret Token" class="settings-input"
+                                    value="{{ settings.get('ZOOM_WEBHOOK_SECRET', '') }}">
+                                <button type="button" class="visibility-toggle"
+                                    onclick="toggleVisibility('zoomSecret', this)"><i class="fas fa-eye"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Microsoft Teams -->
+                <div class="card settings-card">
+                    <div class="card-header">
+                        <div class="icon-wrapper icon-purple"><i class="fab fa-microsoft"></i></div>
+                        <div>
+                            <h3>Microsoft Teams</h3>
+                            <p class="help-text">Extract insights from MS Teams meetings.</p>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label>Bot/App Secret</label>
+                            <div class="input-with-icon">
+                                <input type="password" id="teamsSecret" name="TEAMS_APP_SECRET"
+                                    placeholder="MS Teams App Secret" class="settings-input"
+                                    value="{{ settings.get('TEAMS_APP_SECRET', '') }}">
+                                <button type="button" class="visibility-toggle"
+                                    onclick="toggleVisibility('teamsSecret', this)"><i class="fas fa-eye"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Profile & System -->
+            <div class="settings-column">
+                <h2 class="section-title"><i class="fas fa-user-cog"></i> Profile & Preferences</h2>
+
+                <!-- User Profile -->
+                <div class="card settings-card">
+                    <div class="card-header">
+                        <div class="icon-wrapper icon-blue"><i class="fas fa-id-badge"></i></div>
+                        <div>
+                            <h3>User Profile</h3>
+                            <p class="help-text">Manage your personal contact routing.</p>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <input type="hidden" name="USER_EMAILS" id="userEmailsInput"
+                            value="{{ settings.get('USER_EMAILS', '[]') }}">
+                        <input type="hidden" name="USER_SOCIALS" id="userSocialsInput"
+                            value="{{ settings.get('USER_SOCIALS', '[]') }}">
+
+                        <div class="dynamic-group">
+                            <div class="dynamic-header">
+                                <label>Secondary Emails</label>
+                                <button type="button" class="btn-micro" onclick="addEmailField('settingsEmailList')"><i
+                                        class="fas fa-plus"></i> Add</button>
+                            </div>
+                            <div id="settingsEmailList" class="dynamic-list"></div>
+                        </div>
+
+                        <div class="dynamic-group" style="margin-top: 1.5rem;">
+                            <div class="dynamic-header">
+                                <label>Social Media Handles</label>
+                                <button type="button" class="btn-micro"
+                                    onclick="addSocialField('settingsSocialList')"><i class="fas fa-plus"></i>
+                                    Add</button>
+                            </div>
+                            <div id="settingsSocialList" class="dynamic-list"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System -->
+                <div class="card settings-card">
+                    <div class="card-header">
+                        <div class="icon-wrapper" style="background: rgba(255,255,255,0.1); color: var(--text-main);"><i
+                                class="fas fa-sliders-h"></i></div>
+                        <div>
+                            <h3>System Preferences</h3>
+                            <p class="help-text">App behavior and retention policies.</p>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label>Appearance Theme</label>
+                            <select name="THEME" class="settings-input">
+                                <option value="dark" {% if settings.get('THEME')=='dark' %}selected{% endif %}>
+                                    Glassmorphic Dark (Default)</option>
+                                <option value="light" {% if settings.get('THEME')=='light' %}selected{% endif %}>Modern
+                                    Light</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Data Retention (Days)</label>
+                            <input type="number" name="RETENTION" placeholder="30" class="settings-input"
+                                value="{{ settings.get('RETENTION', '30') }}">
+                            <small class="field-hint">Inactive leads older than this will be archived.</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sticky Footer for Save -->
+        <div class="settings-footer card glass">
+            <div>
+                <span class="footer-title">Configuration Status</span>
+                <p class="footer-desc">Make changes to activate the save button.</p>
+            </div>
+            <button type="submit" class="btn btn-primary btn-save" id="saveButton"
+                style="padding: 0.8rem 2.5rem; font-size: 1rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);">
+                <i class="fas fa-save"></i> Save Configuration
+            </button>
+        </div>
+    </form>
+</div>
+
+<style>
+    /* Styling for the new layout */
+    .settings-layout {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2.5rem;
+        margin-bottom: 6rem;
+    }
+
+    @media (max-width: 900px) {
+        .settings-layout {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .settings-column {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .section-title {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--text-main);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .settings-card {
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(17, 24, 39, 0.4);
+        border-radius: 20px;
+        backdrop-filter: blur(10px);
+        overflow: hidden;
+    }
+
+    .settings-card:hover {
+        transform: translateY(-4px);
+        border-color: rgba(99, 102, 241, 0.3);
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3), 0 0 20px rgba(99, 102, 241, 0.1);
+    }
+
+    .card-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .card-header h3 {
+        margin: 0 0 0.2rem 0;
+        font-size: 1.1rem;
+        color: var(--text-main);
+    }
+
+    .help-text {
+        color: var(--text-dim);
+        font-size: 0.8rem;
+        margin: 0;
+    }
+
+    .icon-wrapper {
+        width: 45px;
+        height: 45px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+
+    .icon-purple {
+        background: rgba(139, 92, 246, 0.15);
+        color: #a78bfa;
+    }
+
+    .icon-red {
+        background: rgba(239, 68, 68, 0.15);
+        color: #f87171;
+    }
+
+    .icon-green {
+        background: rgba(34, 197, 94, 0.15);
+        color: #4ade80;
+    }
+
+    .icon-blue {
+        background: rgba(59, 130, 246, 0.15);
+        color: #60a5fa;
+    }
+
+    .form-group {
+        margin-bottom: 1.2rem;
+    }
+
+    .form-group label {
+        display: block;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .settings-input {
+        width: 100%;
+        background: rgba(0, 0, 0, 0.25);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        padding: 0.8rem 1rem;
+        color: var(--text-main);
+        font-size: 0.95rem;
+        outline: none;
+        transition: all 0.3s ease;
+    }
+
+    .settings-input:focus {
+        border-color: var(--primary);
+        background: rgba(0, 0, 0, 0.4);
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    }
+
+    .field-hint {
+        display: block;
+        color: var(--text-dim);
+        font-size: 0.75rem;
+        margin-top: 0.4rem;
+    }
+
+    .input-with-icon {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+
+    .visibility-toggle {
+        position: absolute;
+        right: 12px;
+        background: none;
+        border: none;
+        color: var(--text-dim);
+        cursor: pointer;
+        padding: 5px;
+        transition: color 0.2s;
+    }
+
+    .visibility-toggle:hover {
+        color: var(--text-main);
+    }
+
+    .dynamic-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.8rem;
+    }
+
+    .dynamic-header label {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: var(--text-main);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin: 0;
+    }
+
+    .btn-micro {
+        background: rgba(99, 102, 241, 0.1);
+        border: 1px solid rgba(99, 102, 241, 0.2);
+        color: var(--primary);
+        padding: 0.4rem 0.8rem;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 0.75rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .btn-micro:hover {
+        background: rgba(99, 102, 241, 0.2);
+        border-color: rgba(99, 102, 241, 0.4);
+        transform: translateY(-1px);
+    }
+
+    .dynamic-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    /* Footer Styling */
+    .settings-footer {
+        position: fixed;
+        bottom: 2rem;
+        right: 2rem;
+        left: calc(260px + 2rem);
+        /* Account for sidebar */
+        padding: 1.2rem 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        z-index: 100;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(15, 23, 42, 0.85);
+        backdrop-filter: blur(12px);
+        transition: box-shadow 0.3s ease, border-color 0.3s ease;
+    }
+
+    .footer-title {
+        font-weight: 600;
+        color: var(--text-main);
+        transition: color 0.3s ease;
+    }
+
+    .footer-desc {
+        font-size: 0.8rem;
+        color: var(--text-dim);
+        margin: 0;
+        transition: color 0.3s ease;
+    }
+
+    .btn-save {
+        transition: transform 0.2s;
+    }
+
+    .btn-save:active {
+        transform: scale(0.97);
+    }
+</style>
+
+<script>
+    // Visibility toggle for passwords
+    function toggleVisibility(inputId, btn) {
+        const input = document.getElementById(inputId);
+        const icon = btn.querySelector('i');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    }
+
+    // Dynamic Fields Logic
+    function safeParse(val) {
+        try {
+            return JSON.parse(val || '[]');
+        } catch {
+            return [];
+        }
+    }
+
+    const initialEmails = safeParse(document.getElementById('userEmailsInput').value);
+    const initialSocials = safeParse(document.getElementById('userSocialsInput').value);
+
+    function createFieldRow(containerId, labelPlaceholder, valuePlaceholder, data, isEmail) {
+        const container = document.getElementById(containerId);
+        const row = document.createElement('div');
+        row.style.display = 'flex';
+        row.style.gap = '0.5rem';
+        row.style.alignItems = 'center';
+
+        const labelInput = document.createElement('input');
+        labelInput.type = 'text';
+        labelInput.placeholder = labelPlaceholder;
+        labelInput.className = 'settings-input dynamic-label';
+        labelInput.style.flex = '1';
+        labelInput.value = data.label || '';
+
+        const valueInput = document.createElement('input');
+        valueInput.type = isEmail ? 'email' : 'text';
+        valueInput.placeholder = valuePlaceholder;
+        valueInput.className = 'settings-input dynamic-value';
+        valueInput.style.flex = '2';
+        valueInput.value = data.value || '';
+
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'btn-micro';
+        removeBtn.style.padding = '0.75rem';
+        removeBtn.style.color = '#ef4444';
+        removeBtn.innerHTML = '<i class="fas fa-trash"></i>';
+        removeBtn.onclick = () => {
+            container.removeChild(row);
+            triggerUnsaved();
+        };
+
+        // Add change listeners
+        labelInput.addEventListener('input', triggerUnsaved);
+        valueInput.addEventListener('input', triggerUnsaved);
+
+        row.appendChild(labelInput);
+        row.appendChild(valueInput);
+        row.appendChild(removeBtn);
+        container.appendChild(row);
+    }
+
+    function addEmailField(containerId, data = {}) {
+        createFieldRow(containerId, 'e.g. Personal', 'email@example.com', data, true);
+        triggerUnsaved();
+    }
+
+    function addSocialField(containerId, data = {}) {
+        createFieldRow(containerId, 'e.g. LinkedIn', 'URL or Handle', data, false);
+        triggerUnsaved();
+    }
+
+    initialEmails.forEach(item => addEmailField('settingsEmailList', item));
+    initialSocials.forEach(item => addSocialField('settingsSocialList', item));
+
+    if (initialEmails.length === 0) addEmailField('settingsEmailList');
+    if (initialSocials.length === 0) addSocialField('settingsSocialList');
+
+    // Make footer glow if changed
+    const allInputs = document.querySelectorAll('input, select');
+    const footer = document.querySelector('.settings-footer');
+    const footerTitle = document.querySelector('.footer-title');
+    const footerDesc = document.querySelector('.footer-desc');
+    let hasUnsavedChanges = false;
+
+    function triggerUnsaved() {
+        if (!hasUnsavedChanges) {
+            hasUnsavedChanges = true;
+            footer.style.boxShadow = '0 0 25px rgba(59, 130, 246, 0.4)';
+            footer.style.borderColor = 'rgba(59, 130, 246, 0.6)';
+            footerTitle.textContent = 'Unsaved Changes Detected';
+            footerTitle.style.color = '#60a5fa';
+            footerDesc.textContent = 'Please save your configuration before leaving.';
+            footerDesc.style.color = '#e2e8f0';
+        }
+    }
+
+    allInputs.forEach(input => {
+        input.addEventListener('input', triggerUnsaved);
+        input.addEventListener('change', triggerUnsaved);
+    });
+
+    // Form Submission
+    document.getElementById('settingsForm').addEventListener('submit', function (e) {
+        const emails = [];
+        document.getElementById('settingsEmailList').querySelectorAll('div').forEach(row => {
+            const label = row.querySelector('.dynamic-label')?.value.trim();
+            const value = row.querySelector('.dynamic-value')?.value.trim();
+            if (label || value) emails.push({ label, value });
+        });
+        document.getElementById('userEmailsInput').value = JSON.stringify(emails);
+
+        const socials = [];
+        document.getElementById('settingsSocialList').querySelectorAll('div').forEach(row => {
+            const label = row.querySelector('.dynamic-label')?.value.trim();
+            const value = row.querySelector('.dynamic-value')?.value.trim();
+            if (label || value) socials.push({ label, value });
+        });
+        document.getElementById('userSocialsInput').value = JSON.stringify(socials);
+    });
+</script>
+{% endblock %}

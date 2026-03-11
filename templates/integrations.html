@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="fade-in" style="max-width: 1400px; margin: 0 auto; height: 100%; display: flex; flex-direction: column;">
+    
+    <!-- Premium Header -->
+    <div class="welcome-section" style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2.5rem; background: linear-gradient(135deg, rgba(30,41,59,0.8), rgba(15,23,42,0.9)); padding: 2.5rem; border-radius: 24px; border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 20px 40px rgba(0,0,0,0.2); position: relative; overflow: hidden; flex-shrink: 0;">
+        <div style="position: absolute; top: -50px; right: -50px; width: 250px; height: 250px; background: #6366f1; opacity: 0.15; filter: blur(70px); border-radius: 50%;"></div>
+        
+        <div style="position: relative; z-index: 1;">
+            <div style="display: inline-block; padding: 0.4rem 1rem; background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 30px; color: var(--primary-light); font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1rem;">Data Sources</div>
+            <h1 style="font-size: 2.8rem; font-weight: 800; letter-spacing: -0.05rem; color: #fff; line-height: 1.1; margin-bottom: 0.5rem;">
+                System Integrations</h1>
+            <p style="color: var(--text-dim); font-size: 1.1rem; max-width: 600px;">Seamlessly connect your CRM to external communication streams. Data flows directly into the NLP Extraction Engine.</p>
+        </div>
+        
+        <div style="display: flex; gap: 1rem; position: relative; z-index: 1;">
+            <button class="btn btn-secondary" onclick="window.location.href='{{ url_for('main.settings') }}'" style="border-radius: 12px; font-size: 0.95rem; padding: 0.8rem 1.5rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px);">
+                <i class="fas fa-cog" style="margin-right: 0.5rem;"></i> Configure Keys
+            </button>
+        </div>
+    </div>
+
+    <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2rem;">
+        
+        <!-- Google Workspace -->
+        <div class="card premium-integration-card" style="background: rgba(17, 24, 39, 0.6); border: 1px solid rgba(255,255,255,0.03); backdrop-filter: blur(20px); border-radius: 24px; padding: 2rem; position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 1.5rem; transition: transform 0.3s ease, border-color 0.3s ease;">
+            <div style="position: absolute; right: -20px; top: -20px; opacity: 0.05; font-size: 12rem; color: #ea4335;"><i class="fab fa-google"></i></div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; position: relative; z-index: 1;">
+                <div style="width: 64px; height: 64px; background: linear-gradient(135deg, rgba(234, 67, 53, 0.2), rgba(185, 28, 28, 0.2)); border-radius: 16px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(234, 67, 53, 0.3);">
+                    <i class="fab fa-google" style="color: #f87171; font-size: 2rem;"></i>
+                </div>
+                {% if settings.get('GOOGLE_CLIENT_ID') and settings.get('GOOGLE_CLIENT_SECRET') %}
+                <span style="display: flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0.8rem; background: rgba(16, 185, 129, 0.15); color: #34d399; border-radius: 20px; font-size: 0.75rem; font-weight: 700; border: 1px solid rgba(16, 185, 129, 0.3);">
+                    <div style="width: 6px; height: 6px; background: #34d399; border-radius: 50%;"></div> CONNECTED
+                </span>
+                {% else %}
+                <span style="display: flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0.8rem; background: rgba(239, 68, 68, 0.15); color: #f87171; border-radius: 20px; font-size: 0.75rem; font-weight: 700; border: 1px solid rgba(239, 68, 68, 0.3);">
+                    UNAUTHORIZED
+                </span>
+                {% endif %}
+            </div>
+            <div style="position: relative; z-index: 1;">
+                <h3 style="font-size: 1.4rem; font-weight: 800; color: white; margin-bottom: 0.25rem;">Google Workspace</h3>
+                <p style="color: var(--text-dim); font-size: 0.9rem; line-height: 1.5;">Ingest corporate emails, calendar events, and Google Meet transcripts automatically.</p>
+            </div>
+            <div style="display: flex; gap: 0.5rem; margin-top: auto; position: relative; z-index: 1;">
+                <button class="btn btn-primary" style="flex: 1; justify-content: center; background: linear-gradient(135deg, #1e3a8a, #3b82f6); border: none; box-shadow: 0 10px 20px rgba(59, 130, 246, 0.2);" onclick="openIntegrationWizard('google')">
+                    <i class="fas fa-link"></i> Connect
+                </button>
+                <button class="btn btn-secondary" style="flex: 1; justify-content: center; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);" onclick="document.getElementById('extractBtn').click();">
+                    <i class="fas fa-upload"></i> Upload
+                </button>
+            </div>
+        </div>
+
+        <!-- WhatsApp Business -->
+        <div class="card premium-integration-card" style="background: rgba(17, 24, 39, 0.6); border: 1px solid rgba(255,255,255,0.03); backdrop-filter: blur(20px); border-radius: 24px; padding: 2rem; position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 1.5rem; transition: transform 0.3s ease, border-color 0.3s ease;">
+            <div style="position: absolute; right: -20px; top: -20px; opacity: 0.05; font-size: 12rem; color: #22c55e;"><i class="fab fa-whatsapp"></i></div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; position: relative; z-index: 1;">
+                <div style="width: 64px; height: 64px; background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(5, 150, 105, 0.2)); border-radius: 16px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(34, 197, 94, 0.3);">
+                    <i class="fab fa-whatsapp" style="color: #34d399; font-size: 2rem;"></i>
+                </div>
+                {% if settings.get('WHATSAPP_PHONE') %}
+                <span style="display: flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0.8rem; background: rgba(16, 185, 129, 0.15); color: #34d399; border-radius: 20px; font-size: 0.75rem; font-weight: 700; border: 1px solid rgba(16, 185, 129, 0.3);">
+                    <div style="width: 6px; height: 6px; background: #34d399; border-radius: 50%;"></div> LIVE ({{ settings.get('WHATSAPP_PHONE') }})
+                </span>
+                {% else %}
+                <span style="display: flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0.8rem; background: rgba(59, 130, 246, 0.15); color: #60a5fa; border-radius: 20px; font-size: 0.75rem; font-weight: 700; border: 1px solid rgba(59, 130, 246, 0.3);">
+                    SETUP REQUIRED
+                </span>
+                {% endif %}
+            </div>
+            <div style="position: relative; z-index: 1;">
+                <h3 style="font-size: 1.4rem; font-weight: 800; color: white; margin-bottom: 0.25rem;">WhatsApp Business</h3>
+                <p style="color: var(--text-dim); font-size: 0.9rem; line-height: 1.5;">Real-time sync for WhatsApp messages, tracking client sentiments and automated data extraction.</p>
+            </div>
+            <div style="display: flex; gap: 0.5rem; margin-top: auto; position: relative; z-index: 1;">
+                <button class="btn btn-primary" style="width: 100%; justify-content: center; background: linear-gradient(135deg, #064e3b, #10b981); border: none; box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2);" onclick="openIntegrationWizard('whatsapp')">
+                    <i class="fas fa-cog"></i> Configure Webhook
+                </button>
+            </div>
+        </div>
+
+        <!-- Zoom Cloud -->
+        <div class="card premium-integration-card" style="background: rgba(17, 24, 39, 0.6); border: 1px solid rgba(255,255,255,0.03); backdrop-filter: blur(20px); border-radius: 24px; padding: 2rem; position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 1.5rem; transition: transform 0.3s ease, border-color 0.3s ease;">
+            <div style="position: absolute; right: -20px; top: -20px; opacity: 0.05; font-size: 12rem; color: #3b82f6;"><i class="fas fa-video"></i></div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; position: relative; z-index: 1;">
+                <div style="width: 64px; height: 64px; background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(29, 78, 216, 0.2)); border-radius: 16px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(59, 130, 246, 0.3);">
+                    <i class="fas fa-video" style="color: #60a5fa; font-size: 1.8rem;"></i>
+                </div>
+                {% if settings.get('ZOOM_WEBHOOK_SECRET') %}
+                <span style="display: flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0.8rem; background: rgba(16, 185, 129, 0.15); color: #34d399; border-radius: 20px; font-size: 0.75rem; font-weight: 700; border: 1px solid rgba(16, 185, 129, 0.3);">
+                    <div style="width: 6px; height: 6px; background: #34d399; border-radius: 50%;"></div> ACTIVE
+                </span>
+                {% else %}
+                <span style="display: flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0.8rem; background: rgba(255, 255, 255, 0.1); color: #94a3b8; border-radius: 20px; font-size: 0.75rem; font-weight: 700; border: 1px solid rgba(255, 255, 255, 0.1);">
+                    PENDING
+                </span>
+                {% endif %}
+            </div>
+            <div style="position: relative; z-index: 1;">
+                <h3 style="font-size: 1.4rem; font-weight: 800; color: white; margin-bottom: 0.25rem;">Zoom Network</h3>
+                <p style="color: var(--text-dim); font-size: 0.9rem; line-height: 1.5;">Ingest cloud meeting recordings, transcripts, and attendee context automatically.</p>
+            </div>
+            <div style="display: flex; gap: 0.5rem; margin-top: auto; position: relative; z-index: 1;">
+                <button class="btn btn-secondary" style="flex: 1; justify-content: center; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);" onclick="openIntegrationWizard('zoom')">
+                    <i class="fas fa-plug"></i> Setup Hook
+                </button>
+                <button class="btn btn-primary" style="flex: 1; justify-content: center; background: linear-gradient(135deg, rgba(59, 130, 246, 0.6), rgba(37, 99, 235, 0.8)); border: none;" onclick="document.getElementById('extractBtn').click();">
+                    <i class="fas fa-upload"></i> Upload
+                </button>
+            </div>
+        </div>
+
+        <!-- MS Teams -->
+        <div class="card premium-integration-card" style="background: rgba(17, 24, 39, 0.6); border: 1px solid rgba(255,255,255,0.03); backdrop-filter: blur(20px); border-radius: 24px; padding: 2rem; position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 1.5rem; transition: transform 0.3s ease, border-color 0.3s ease;">
+            <div style="position: absolute; right: -20px; top: -20px; opacity: 0.05; font-size: 12rem; color: #8b5cf6;"><i class="fab fa-microsoft"></i></div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; position: relative; z-index: 1;">
+                <div style="width: 64px; height: 64px; background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(109, 40, 217, 0.2)); border-radius: 16px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(139, 92, 246, 0.3);">
+                    <i class="fab fa-microsoft" style="color: #a78bfa; font-size: 2rem;"></i>
+                </div>
+                {% if settings.get('TEAMS_APP_SECRET') %}
+                <span style="display: flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0.8rem; background: rgba(16, 185, 129, 0.15); color: #34d399; border-radius: 20px; font-size: 0.75rem; font-weight: 700; border: 1px solid rgba(16, 185, 129, 0.3);">
+                    <div style="width: 6px; height: 6px; background: #34d399; border-radius: 50%;"></div> CONNECTED
+                </span>
+                {% else %}
+                <span style="display: flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0.8rem; background: rgba(255, 255, 255, 0.1); color: #94a3b8; border-radius: 20px; font-size: 0.75rem; font-weight: 700; border: 1px solid rgba(255, 255, 255, 0.1);">
+                    PENDING
+                </span>
+                {% endif %}
+            </div>
+            <div style="position: relative; z-index: 1;">
+                <h3 style="font-size: 1.4rem; font-weight: 800; color: white; margin-bottom: 0.25rem;">Microsoft Teams</h3>
+                <p style="color: var(--text-dim); font-size: 0.9rem; line-height: 1.5;">Direct graph pipeline for enterprise meeting minutes and action item generation.</p>
+            </div>
+            <div style="display: flex; gap: 0.5rem; margin-top: auto; position: relative; z-index: 1;">
+                <button class="btn btn-secondary" style="flex: 1; justify-content: center; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);" onclick="openIntegrationWizard('teams')">
+                    <i class="fas fa-link"></i> Integrate App
+                </button>
+                <button class="btn btn-primary" style="flex: 1; justify-content: center; background: linear-gradient(135deg, rgba(139, 92, 246, 0.6), rgba(109, 40, 217, 0.8)); border: none;" onclick="document.getElementById('extractBtn').click();">
+                    <i class="fas fa-upload"></i> Upload
+                </button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    .premium-integration-card:hover {
+        transform: translateY(-5px);
+        border-color: rgba(99, 102, 241, 0.3) !important;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+    }
+</style>
+{% endblock %}

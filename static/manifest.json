@@ -1,0 +1,15 @@
+{
+  "name": "NLPCRM",
+  "short_name": "NLPCRM",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#6366f1",
+  "icons": [
+    {
+      "src": "https://ui-avatars.com/api/?name=NL&background=6366f1&color=fff&size=192",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}

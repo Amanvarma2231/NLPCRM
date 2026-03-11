@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LeadGenie CRM</title>
+    <meta name="description" content="LeadGenie CRM - AI-powered lead intelligence and sales pipeline management.">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- Custom Style -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- CSRF Token for AJAX requests -->
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    <!-- PWA Settings -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="https://ui-avatars.com/api/?name=NL&background=6366f1&color=fff&size=192">
+</head>
+
+<body class="theme-{{ admin_settings.get('THEME', 'dark') }}">
+    <div class="glass-bg"></div>
+    <div class="sidebar">
+        <div class="logo">
+            <div class="logo-icon"><i class="fas fa-brain"></i></div>
+            <span><strong>LeadGenie</strong><span style="color: var(--primary-light); font-weight: 300;">CRM</span></span>
+        </div>
+
+        <div class="nav-group">
+            <span class="nav-label">Main</span>
+            <a href="{{ url_for('main.dashboard') }}"
+                class="nav-item {% if request.endpoint == 'main.dashboard' %}active{% endif %}">
+                <div class="nav-item-content">
+                    <i class="fas fa-th-large"></i> Dashboard
+                </div>
+            </a>
+            <a href="{{ url_for('main.contacts_list') }}"
+                class="nav-item {% if request.endpoint == 'main.contacts_list' %}active{% endif %}">
+                <div class="nav-item-content">
+                    <i class="fas fa-columns"></i> Contacts
+                </div>
+                <span class="badge-count">{{ contacts_count if contacts_count else '0' }}</span>
+            </a>
+            <a href="{{ url_for('main.pipeline') }}"
+                class="nav-item {% if request.endpoint == 'main.pipeline' %}active{% endif %}">
+                <div class="nav-item-content">
+                    <i class="fas fa-route"></i> Pipeline
+                </div>
+            </a>
+        </div>
+
+        <div class="nav-group">
+            <span class="nav-label">Intelligence</span>
+            <a href="{{ url_for('main.ai_engine') }}"
+                class="nav-item {% if request.endpoint == 'main.ai_engine' %}active{% endif %}">
+                <div class="nav-item-content">
+                    <i class="fas fa-sparkles"></i> AI Engine
+                </div>
+            </a>
+            <a href="{{ url_for('main.entities') }}"
+                class="nav-item {% if request.endpoint == 'main.entities' %}active{% endif %}">
+                <div class="nav-item-content">
+                    <i class="fas fa-layer-group"></i> Entities
+                </div>
+                <span class="badge-new">NEW</span>
+            </a>
+            <a href="{{ url_for('main.activity') }}"
+                class="nav-item {% if request.endpoint == 'main.activity' %}active{% endif %}">
+                <div class="nav-item-content">
+                    <i class="fas fa-history"></i> Activity
+                </div>
+            </a>
+        </div>
+
+        <div class="nav-group" style="margin-top: auto;">
+            <span class="nav-label">Setup</span>
+            <a href="{{ url_for('main.integrations') }}"
+                class="nav-item {% if request.endpoint == 'main.integrations' %}active{% endif %}">
+                <div class="nav-item-content">
+                    <i class="fas fa-hexagon-nodes"></i> Integrations
+                </div>
+                <span class="badge-alert">3</span>
+            </a>
+            <a href="{{ url_for('main.settings') }}"
+                class="nav-item {% if request.endpoint == 'main.settings' %}active{% endif %}">
+                <div class="nav-item-content">
+                    <i class="fas fa-cog"></i> Settings
+                </div>
+            </a>
+        </div>
+
+        <div class="user-profile" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);">
+            <img src="https://ui-avatars.com/api/?name=Aman+Varma&background=3b82f6&color=fff" alt="User"
+                style="width: 32px; height: 32px; border-radius: 8px;">
+            <div class="user-info" style="margin-left: 0.75rem;">
+                <h4 style="font-size: 0.85rem; margin: 0; color: var(--text-main);">Aman Varma</h4>
+                <p
+                    style="font-size: 0.7rem; margin: 0; color: var(--text-muted); text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 130px;">
+                    {{ admin_settings.get('USER_SOCIAL_PRIMARY') or admin_settings.get('USER_EMAIL2_PRIMARY') or
+                    'Administrator' }}
+                </p>
+                <a href="{{ url_for('main.logout') }}"
+                    style="display: inline-block; margin-top: 0.5rem; font-size: 0.75rem; color: #ef4444; text-decoration: none;">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <main class="content">
+        <header>
+            <div class="search-bar">
+                <i class="fas fa-search"></i>
+                <input type="text" id="globalSearch" placeholder="Search contacts, companies...">
+            </div>
+            <div class="header-actions">
+                <div class="status-indicator">
+                    <span class="dot online"></span>
+                    <span>Qwen 2.5 Active</span>
+                </div>
+                <button class="btn btn-secondary" id="extractBtn" style="border: 1px solid rgba(255,255,255,0.1);">
+                    <i class="fas fa-file-import"></i> Import Text
+                </button>
+                <button class="btn btn-primary" id="globalAiToggle" title="Open AI Assistant">
+                    <i class="fas fa-robot"></i> ESA
+                </button>
+            </div>
+        </header>
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Modal for Extraction -->
+    <div id="extractionModal" class="modal">
+        <div class="modal-content glass">
+            <h3><i class="fas fa-magic"></i> AI NLP Extraction</h3>
+            <p>Paste email content, WhatsApp messages, or meeting transcripts below:</p>
+            <textarea id="rawText"
+                placeholder="Example: Hey, I am interested in your project. Call me at +91..."></textarea>
+            <div class="modal-actions">
+                <button class="btn btn-secondary close-modal">Cancel</button>
+                <button class="btn btn-primary" id="processBtn">Process with Qwen</button>
+            </div>
+            <div id="extractionResults" class="results-area hidden">
+                <h4>Extracted Data</h4>
+                <pre id="jsonOutput"></pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Global View Contact Modal -->
+    <div id="viewContactModal"
+        style="display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.7); backdrop-filter: blur(5px); justify-content:center; align-items:center;">
+        <div class="card"
+            style="width: 500px; padding: 0; animation: slideUp 0.3s ease; overflow: hidden; max-height: 90vh; overflow-y: auto;">
+            <div
+                style="background: linear-gradient(135deg, var(--primary), #8b5cf6); padding: 2rem; text-align: center; position: relative;">
+                <button onclick="closeViewModal()"
+                    style="position: absolute; top: 1rem; right: 1.5rem; background: transparent; border: none; color: white; font-size: 1.2rem; cursor: pointer;"><i
+                        class="fas fa-times"></i></button>
+                <img id="viewAvatar" src="" alt="Avatar"
+                    style="width: 80px; height: 80px; border-radius: 50%; border: 4px solid rgba(255,255,255,0.2); margin-bottom: 1rem;">
+                <h2 id="viewName" style="color: white; margin: 0; font-size: 1.8rem; font-weight: 700;"></h2>
+                <p id="viewCompany" style="color: rgba(255,255,255,0.8); margin-top: 0.5rem; font-size: 1rem;"></p>
+            </div>
+            <div style="padding: 2rem;">
+                <div
+                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 1.5rem;">
+                    <div>
+                        <span
+                            style="display: block; font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.3rem;">Primary
+                            Email</span>
+                        <div
+                            style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-main); word-break: break-all;">
+                            <i class="fas fa-envelope" style="color: var(--primary);"></i> <span id="viewEmail"></span>
+                        </div>
+                    </div>
+                    <div>
+                        <span
+                            style="display: block; font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.3rem;">Phone
+                            Number</span>
+                        <div style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-main);">
+                            <i class="fas fa-phone" style="color: var(--primary);"></i> <span id="viewPhone"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="viewExtraEmailsContainer" style="margin-bottom: 1.5rem; display: none;">
+                    <span
+                        style="display: block; font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">Alternative
+                        Emails</span>
+                    <div id="viewExtraEmailsList" style="display: flex; flex-direction: column; gap: 0.5rem;"></div>
+                </div>
+
+                <div id="viewSocialsContainer" style="margin-bottom: 0; display: none;">
+                    <span
+                        style="display: block; font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;">Social
+                        Media & Links</span>
+                    <div id="viewSocialsList" style="display: flex; flex-direction: column; gap: 0.5rem;"></div>
+                </div>
+            </div>
+            <div
+                style="background: rgba(0,0,0,0.1); padding: 1rem 2rem; display: flex; justify-content: flex-end; border-top: 1px solid var(--border);">
+                <button class="btn btn-secondary" onclick="closeViewModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+        // Global View Contact Modal Logic
+        function closeViewModal() {
+            document.getElementById('viewContactModal').style.display = 'none';
+        }
+
+        window.addEventListener('click', function (event) {
+            if (event.target == document.getElementById('viewContactModal')) closeViewModal();
+            if (event.target == document.getElementById('contactModal')) closeModal();
+            if (event.target == document.getElementById('deleteModal')) closeDeleteModal();
+            if (event.target == document.getElementById('integrationWizardModal')) closeWizard();
+        });
+
+        // Add Contact Modal Logic
+        function openModal() {
+            const modal = document.getElementById('contactModal');
+            if (!modal) return;
+            modal.style.display = 'flex';
+            document.getElementById('contactEmailList').innerHTML = '';
+            document.getElementById('contactSocialList').innerHTML = '';
+            addContactEmailField();
+            addContactSocialField();
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('contactModal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        function createDynamicField(containerId, inputId, labelPlaceholder, valuePlaceholder) {
+            const container = document.getElementById(containerId);
+            const row = document.createElement('div');
+            row.style.display = 'flex';
+            row.style.gap = '0.5rem';
+            row.style.marginBottom = '0.5rem';
+
+            const labelInput = document.createElement('input');
+            labelInput.placeholder = labelPlaceholder;
+            labelInput.style.cssText = "flex:1; padding:0.6rem; background:rgba(0,0,0,0.2); border:1px solid var(--border); border-radius:6px; color:white; font-size:0.8rem;";
+
+            const valueInput = document.createElement('input');
+            valueInput.placeholder = valuePlaceholder;
+            valueInput.style.cssText = "flex:2; padding:0.6rem; background:rgba(0,0,0,0.2); border:1px solid var(--border); border-radius:6px; color:white; font-size:0.8rem;";
+
+            const removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+            removeBtn.style.cssText = "background:none; border:none; color:#ef4444; cursor:pointer; padding:0 0.5rem;";
+            removeBtn.onclick = () => container.removeChild(row);
+
+            const updateHidden = () => {
+                const results = [];
+                container.querySelectorAll('div').forEach(r => {
+                    const inputs = r.querySelectorAll('input');
+                    if (inputs.length >= 2) {
+                        const l = inputs[0].value;
+                        const v = inputs[1].value;
+                        if (v) results.push({ label: l || 'Other', value: v });
+                    }
+                });
+                document.getElementById(inputId).value = JSON.stringify(results);
+            };
+
+            labelInput.oninput = updateHidden;
+            valueInput.oninput = updateHidden;
+
+            row.appendChild(labelInput);
+            row.appendChild(valueInput);
+            row.appendChild(removeBtn);
+            container.appendChild(row);
+        }
+
+        function addContactEmailField() { createDynamicField('contactEmailList', 'contactEmailsInput', 'Label', 'Email'); }
+        function addContactSocialField() { createDynamicField('contactSocialList', 'contactSocialsInput', 'Platform', 'URL/Handle'); }
+
+        // Delete Modal logic
+        function closeDeleteModal() { document.getElementById('deleteModal').style.display = 'none'; }
+
+        // Integration Wizard Logic
+        function closeWizard() { document.getElementById('integrationWizardModal').style.display = 'none'; }
+
+        function openIntegrationWizard(service) {
+            const modal = document.getElementById('integrationWizardModal');
+            const header = document.getElementById('wizardHeader');
+            const icon = document.getElementById('wizardIcon');
+            const title = document.getElementById('wizardTitle');
+            const subtitle = document.getElementById('wizardSubtitle');
+            const content = document.getElementById('wizardContent');
+            const submit = document.getElementById('wizardSubmit');
+
+            content.innerHTML = '';
+            submit.onclick = null;
+            submit.innerHTML = 'Confirm Connection';
+            submit.disabled = false;
+
+            if (service === 'whatsapp') {
+                icon.innerHTML = '<i class="fab fa-whatsapp"></i>';
+                header.style.background = 'linear-gradient(135deg, #22c55e, #16a34a)';
+                title.innerText = 'WhatsApp Cloud API';
+                subtitle.innerText = 'Directly sync messages with leads.';
+                content.innerHTML = `
+                    <div style="margin-bottom: 1.5rem;">
+                        <label style="display:block; margin-bottom: 0.8rem; font-size: 0.8rem; color:var(--text-dim); text-transform:uppercase;">WhatsApp Phone Number</label>
+                        <input type="text" id="waPhone" placeholder="+91 98765 43210" style="width:100%; padding: 1rem; background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 10px; color: white;">
+                    </div>
+                `;
+                submit.innerText = 'Connect Number';
+                submit.onclick = () => {
+                    const phone = document.getElementById('waPhone').value;
+                    if (!phone) return alert('Phone required');
+                    submit.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+                    const params = new URLSearchParams();
+                    params.append('WHATSAPP_PHONE', phone);
+                    fetch('/settings', { method: 'POST', body: params }).then(() => {
+                        window.location.reload();
+                    });
+                };
+            } else if (service === 'google') {
+                icon.innerHTML = '<i class="fab fa-google"></i>';
+                header.style.background = 'linear-gradient(135deg, #ea4335, #c5221f)';
+                title.innerText = 'Google Workspace';
+                subtitle.innerText = 'Analyze Gmail and Meet meetings.';
+                content.innerHTML = `
+                    <div style="margin-bottom: 1rem;">
+                        <label style="display:block; margin-bottom: 0.5rem; font-size: 0.8rem; color:var(--text-dim);">Google Client ID</label>
+                        <input type="text" id="gID" placeholder="XXX.apps.googleusercontent.com" style="width:100%; padding: 0.8rem; background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 8px; color: white;">
+                    </div>
+                `;
+                submit.innerText = 'Start Auth Flow';
+                submit.onclick = () => {
+                    const gid = document.getElementById('gID').value;
+                    if (!gid) return alert('Client ID required');
+                    const params = new URLSearchParams();
+                    params.append('GOOGLE_CLIENT_ID', gid);
+                    fetch('/settings', { method: 'POST', body: params }).then(() => {
+                        alert('Settings saved. Redirecting to Google...');
+                        window.location.href = '/google-auth';
+                    });
+                };
+            } else if (service === 'zoom' || service === 'teams') {
+                const name = service === 'zoom' ? 'Zoom' : 'MS Teams';
+                icon.innerHTML = service === 'zoom' ? '<i class="fas fa-video"></i>' : '<i class="fab fa-microsoft"></i>';
+                header.style.background = service === 'zoom' ? 'linear-gradient(135deg, #3b82f6, #2563eb)' : 'linear-gradient(135deg, #8b5cf6, #7c3aed)';
+                title.innerText = `Automatic ${name} Extraction`;
+                subtitle.innerText = `Ingest transcripts via ${name} Webhooks.`;
+                const url = `${window.location.origin}/webhooks/${service}`;
+                content.innerHTML = `
+                    <div style="margin-bottom: 1.5rem;">
+                        <label style="display:block; margin-bottom: 0.8rem; font-size: 0.8rem; color:var(--text-dim); text-transform:uppercase;">Your Secret Webhook URL</label>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <input type="text" readonly value="${url}" id="hookUrl" style="flex:1; padding: 0.8rem; background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 8px; color: #3b82f6; font-family: monospace;">
+                            <button class="btn btn-secondary" onclick="navigator.clipboard.writeText('${url}'); this.innerText='Copied!'"><i class="fas fa-copy"></i></button>
+                        </div>
+                    </div>
+                    <p style="font-size: 0.8rem; color: var(--text-dim);">Paste this URL into your ${name} App dashboard under "Event Notification".</p>
+                `;
+                submit.innerText = 'Done';
+                submit.onclick = closeWizard;
+            }
+
+            modal.style.display = 'flex';
+        }
+
+        function viewContact(name, email, phone, company, interest, email2Json, socialJson) {
+            document.getElementById('viewName').textContent = name || 'Unknown Contact';
+            document.getElementById('viewCompany').textContent = company ? company : 'No Company Provided';
+            document.getElementById('viewAvatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(name || email)}&background=6366f1&color=fff&size=128`;
+            document.getElementById('viewEmail').textContent = email || 'N/A';
+            document.getElementById('viewPhone').textContent = phone || 'N/A';
+
+            const extraEmailsContainer = document.getElementById('viewExtraEmailsContainer');
+            const extraEmailsList = document.getElementById('viewExtraEmailsList');
+            extraEmailsList.innerHTML = '';
+            let hasExtraEmails = false;
+            try {
+                const emails = JSON.parse(email2Json || '[]');
+                if (emails.length > 0) {
+                    hasExtraEmails = true;
+                    emails.forEach(e => {
+                        const el = document.createElement('div');
+                        el.style.cssText = "display:flex; align-items:center; gap:0.5rem; color:var(--text-main); background:rgba(255,255,255,0.03); padding:0.5rem 0.8rem; border-radius:6px;";
+                        el.innerHTML = `<span style="color:var(--text-muted); font-size:0.8rem; min-width:60px;">${e.label}:</span> <a href="mailto:${e.value}" style="color:var(--primary); text-decoration:none;">${e.value}</a>`;
+                        extraEmailsList.appendChild(el);
+                    });
+                }
+            } catch (e) { }
+            extraEmailsContainer.style.display = hasExtraEmails ? 'block' : 'none';
+
+            const socialsContainer = document.getElementById('viewSocialsContainer');
+            const socialsList = document.getElementById('viewSocialsList');
+            socialsList.innerHTML = '';
+            let hasSocials = false;
+            try {
+                const socials = JSON.parse(socialJson || '[]');
+                if (socials.length > 0) {
+                    hasSocials = true;
+                    socials.forEach(s => {
+                        const el = document.createElement('div');
+                        el.style.cssText = "display:flex; align-items:center; gap:0.5rem; color:var(--text-main); background:rgba(255,255,255,0.03); padding:0.5rem 0.8rem; border-radius:6px;";
+                        let icon = 'fas fa-link';
+                        const lbl = (s.label || '').toLowerCase();
+                        if (lbl.includes('linkedin')) icon = 'fab fa-linkedin';
+                        else if (lbl.includes('twitter') || lbl.includes('x')) icon = 'fab fa-twitter';
+                        else if (lbl.includes('github')) icon = 'fab fa-github';
+                        const isUrl = (s.value || '').startsWith('http');
+                        const valHtml = isUrl ? `<a href="${s.value}" target="_blank" style="color:var(--primary); text-decoration:none;">${s.value}</a>` : `<span>${s.value}</span>`;
+                        el.innerHTML = `<i class="${icon}" style="color:var(--text-muted); width:20px; text-align:center;"></i> <span style="color:var(--text-muted); font-size:0.8rem; min-width:60px;">${s.label}:</span> ${valHtml}`;
+                        socialsList.appendChild(el);
+                    });
+                }
+            } catch (e) { }
+            socialsContainer.style.display = hasSocials ? 'block' : 'none';
+            document.getElementById('viewContactModal').style.display = 'flex';
+        }
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js').catch(err => console.log('SW failed:', err));
+            });
+        }
+    </script>
+    <style>
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+    </style>
+
+    <!-- Global Wizard Modal -->
+    <div id="integrationWizardModal"
+        style="display:none; position:fixed; z-index:3000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.8); backdrop-filter: blur(8px); justify-content:center; align-items:center;">
+        <div class="card"
+            style="width: 500px; padding: 0; animation: slideUp 0.3s ease; border: 1px solid rgba(255,255,255,0.1); overflow: hidden;">
+            <div id="wizardHeader"
+                style="padding: 2.5rem; background: linear-gradient(135deg, #3b82f6, #8b5cf6); text-align: center; color: white;">
+                <div id="wizardIcon" style="font-size: 3rem; margin-bottom: 1rem;"></div>
+                <h2 id="wizardTitle" style="margin: 0; font-size: 1.8rem; font-weight: 800;">Connect Service</h2>
+                <p id="wizardSubtitle" style="margin-top: 0.5rem; opacity: 0.9; font-size: 0.95rem;"></p>
+            </div>
+            <div style="padding: 2.5rem;">
+                <div id="wizardContent"></div>
+                <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+                    <button class="btn btn-secondary" style="flex: 1;" onclick="closeWizard()">Cancel</button>
+                    <button id="wizardSubmit" class="btn btn-primary" style="flex: 2;">Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Global Add Contact Modal -->
+    <div id="contactModal"
+        style="display:none; position:fixed; z-index:2100; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.7); backdrop-filter: blur(5px); justify-content:center; align-items:center;">
+        <div class="card"
+            style="width: 450px; padding: 2.5rem; animation: slideUp 0.3s ease; max-height: 90vh; overflow-y: auto;">
+            <h2 style="margin-bottom: 1.5rem; color: var(--text-main);">Add New Contact</h2>
+            <form action="{{ url_for('main.add_contact') }}" method="POST">
+                <div style="margin-bottom: 1rem;">
+                    <label
+                        style="display:block; margin-bottom: 0.5rem; font-size: 0.85rem; color:var(--text-dim); text-transform:uppercase;">Full
+                        Name</label>
+                    <input type="text" name="name" required
+                        style="width:100%; padding: 0.8rem; background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 8px; color: white;">
+                </div>
+                <div style="margin-bottom: 1rem;">
+                    <label
+                        style="display:block; margin-bottom: 0.5rem; font-size: 0.85rem; color:var(--text-dim); text-transform:uppercase;">Email
+                        Address</label>
+                    <input type="email" name="email" required
+                        style="width:100%; padding: 0.8rem; background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 8px; color: white;">
+                </div>
+                <div style="margin-bottom: 1.5rem;">
+                    <label
+                        style="display:block; margin-bottom: 0.5rem; font-size: 0.85rem; color:var(--text-dim); text-transform:uppercase;">Phone
+                        Number</label>
+                    <input type="text" name="phone"
+                        style="width:100%; padding: 0.8rem; background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 8px; color: white;">
+                </div>
+                <input type="hidden" name="email2" id="contactEmailsInput" value="[]">
+                <input type="hidden" name="social_media" id="contactSocialsInput" value="[]">
+                <div style="margin-bottom: 1rem;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <label style="font-size: 0.85rem; color:var(--text-dim); text-transform:uppercase;">Extra
+                            Emails</label>
+                        <button type="button" class="btn btn-secondary"
+                            style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" onclick="addContactEmailField()"><i
+                                class="fas fa-plus"></i> Add</button>
+                    </div>
+                    <div id="contactEmailList"></div>
+                </div>
+                <div style="margin-bottom: 1.5rem;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <label style="font-size: 0.85rem; color:var(--text-dim); text-transform:uppercase;">Social
+                            Media</label>
+                        <button type="button" class="btn btn-secondary"
+                            style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" onclick="addContactSocialField()"><i
+                                class="fas fa-plus"></i> Add</button>
+                    </div>
+                    <div id="contactSocialList"></div>
+                </div>
+                <div style="margin-bottom: 2rem;">
+                    <label
+                        style="display:block; margin-bottom: 0.5rem; font-size: 0.85rem; color:var(--text-dim); text-transform:uppercase;">Company</label>
+                    <input type="text" name="company"
+                        style="width:100%; padding: 0.8rem; background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 8px; color: white;">
+                </div>
+                <div style="display:flex; gap: 1rem;">
+                    <button type="submit" class="btn btn-primary" style="flex:1;">Save Contact</button>
+                    <button type="button" onclick="closeModal()" class="btn btn-secondary"
+                        style="flex:1;">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Global Delete Confirmation Modal -->
+    <div id="deleteModal"
+        style="display:none; position:fixed; z-index:2200; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.7); backdrop-filter: blur(5px); justify-content:center; align-items:center;">
+        <div class="card" style="width: 400px; padding: 2.5rem; animation: slideUp 0.3s ease; text-align: center;">
+            <div
+                style="width: 60px; height: 60px; border-radius: 50%; background: rgba(239, 68, 68, 0.1); color: #ef4444; display: flex; justify-content: center; align-items: center; font-size: 1.8rem; margin: 0 auto 1.5rem auto;">
+                <i class="fas fa-trash-alt"></i>
+            </div>
+            <h2 style="margin-bottom: 1rem; color: var(--text-main);">Delete Contact?</h2>
+            <p style="color: var(--text-dim); margin-bottom: 2rem; line-height: 1.5; font-size: 0.95rem;">Are you sure
+                you want to remove <strong id="deleteContactName" style="color: var(--text-main);"></strong>? This
+                action is permanent.</p>
+            <div style="display: flex; gap: 1rem;">
+                <button class="btn btn-secondary" onclick="closeDeleteModal()" style="flex: 1;">Cancel</button>
+                <a id="confirmDeleteBtn" href="#" class="btn btn-primary"
+                    style="flex: 1; background: #ef4444; border-color: #ef4444; justify-content: center;">Delete Now</a>
+            </div>
+        </div>
+    </div>
+    <!-- Toast Notifications Container -->
+    <div id="toastContainer" class="toast-container"></div>
+</body>
+
+</html>

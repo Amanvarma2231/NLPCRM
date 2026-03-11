@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="fade-in">
+    <div class="welcome-section">
+        <h1 style="font-size: 2.2rem; font-weight: 800; color: var(--text-main);">Activity Logs</h1>
+        <p style="color: var(--text-dim);">Comprehensive history of all interactions and system events.</p>
+    </div>
+
+    <div class="table-container fade-in" style="margin-top: 2rem;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Reference</th>
+                    <th>Detail</th>
+                    <th>Timestamp</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if activity %}
+                {% for act in activity %}
+                <tr>
+                    <td>
+                        <span class="badge-new"
+                            style="background: {% if act[0] == 'interaction' %}rgba(107, 114, 128, 0.2){% else %}rgba(59, 130, 246, 0.2){% endif %};">
+                            {{ act[2] if act[0] == 'interaction' else 'SYSTEM' }}
+                        </span>
+                    </td>
+                    <td style="font-weight: 600;">{{ act[1] }}</td>
+                    <td style="color: var(--text-muted); font-size: 0.85rem;">{{ act[3] }}</td>
+                    <td style="font-size: 0.75rem;">{{ act[4] if act[4] else 'Just now' }}</td>
+                </tr>
+                {% endfor %}
+                {% else %}
+                <tr>
+                    <td colspan="4" style="text-align: center; padding: 3rem; color: var(--text-dim);">No activity logs
+                        available.</td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

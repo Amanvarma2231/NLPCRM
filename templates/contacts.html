@@ -1,0 +1,461 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="contacts-wrapper fade-in">
+    <!-- Left Sidebar -->
+    <div class="contacts-sidebar">
+        <button class="btn btn-primary" onclick="openModal()" style="width: 100%; justify-content: center; box-shadow: 0 10px 20px rgba(99, 102, 241, 0.2);">
+            <i class="fas fa-plus"></i> Add New Contact
+        </button>
+
+        <div class="filter-group">
+            <h4>Intelligence Segments</h4>
+            <div class="filter-item active" data-filter="all" onclick="setFilter('all', this)">
+                <i class="fas fa-users" style="color: var(--primary-light);"></i> All Entities
+            </div>
+            <div class="filter-item" data-filter="High" onclick="setFilter('High', this)">
+                <i class="fas fa-fire-alt" style="color: #ef4444;"></i> Hot Leads
+            </div>
+            <div class="filter-item" data-filter="New" onclick="setFilter('New', this)">
+                <i class="fas fa-star" style="color: #fbbf24;"></i> Recently Added
+            </div>
+        </div>
+
+        <div class="filter-group">
+            <h4>Quick Stats</h4>
+            <div style="padding: 1.2rem; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+                <div style="font-size: 2.2rem; font-weight: 800; color: var(--primary-light); line-height: 1;">{{ contacts|length }}</div>
+                <div style="font-size: 0.8rem; color: var(--text-dim); text-transform: uppercase; margin-top: 0.5rem; letter-spacing: 0.05em;">Total Contacts</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Table Area -->
+    <div class="contacts-main">
+        <div class="table-header-bar">
+            <div>
+                <h3 style="margin: 0; font-size: 1.3rem; color: var(--text-main); font-weight: 700;">Contact Directory</h3>
+                <p style="margin: 0; font-size: 0.85rem; color: var(--text-dim); margin-top: 0.2rem;" id="showingCount">Showing all contacts</p>
+            </div>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                <div style="position: relative; width: 320px;">
+                    <i class="fas fa-search" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.9rem;"></i>
+                    <input type="text" id="contactSearch" placeholder="Search names, emails, companies..." 
+                        style="width: 100%; padding: 0.75rem 1rem 0.75rem 2.8rem; background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 12px; color: white; font-size: 0.9rem; transition: all 0.2s;"
+                        onkeyup="filterContacts()" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--border)'">
+                </div>
+            </div>
+        </div>
+
+        <div class="table-wrapper-scroll">
+            <table style="width: 100%; border-collapse: separate; border-spacing: 0;">
+                <thead style="position: sticky; top: 0; background: rgba(30, 41, 59, 0.95); backdrop-filter: blur(10px); z-index: 5;">
+                    <tr>
+                        <th style="padding: 1.2rem 2rem; width: 50px; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <div class="custom-checkbox-wrapper">
+                                <input type="checkbox" class="custom-checkbox" id="selectAllCheckbox" onclick="toggleAll(this)">
+                            </div>
+                        </th>
+                        <th style="padding: 1.2rem 1rem; text-align: left; font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em; border-bottom: 1px solid rgba(255,255,255,0.05);">Identity</th>
+                        <th style="padding: 1.2rem 1rem; text-align: left; font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em; border-bottom: 1px solid rgba(255,255,255,0.05);">Company</th>
+                        <th style="padding: 1.2rem 1rem; text-align: left; font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em; border-bottom: 1px solid rgba(255,255,255,0.05);">Priority</th>
+                        <th style="padding: 1.2rem 2rem; text-align: right; font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em; border-bottom: 1px solid rgba(255,255,255,0.05);">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="contactsTableBody">
+                    {% if contacts %}
+                    {% for contact in contacts %}
+                    <tr class="contact-row" data-interest="{{ contact.interest or 'New' }}" style="transition: all 0.2s ease;">
+                        <td style="padding: 1.2rem 2rem; border-bottom: 1px solid rgba(255,255,255,0.02);">
+                            <div class="custom-checkbox-wrapper">
+                                <input type="checkbox" class="custom-checkbox row-checkbox" value="{{ contact.email }}" onclick="updateSelection()">
+                            </div>
+                        </td>
+                        <td style="padding: 1.2rem 1rem; border-bottom: 1px solid rgba(255,255,255,0.02); cursor: pointer;" onclick="openDrawer(this)" data-contact="{{ contact|tojson|forceescape }}">
+                            <div class="user-cell" style="display: flex; align-items: center; gap: 1rem;">
+                                <div style="position: relative;">
+                                    <img src="https://ui-avatars.com/api/?name={{ (contact.name or contact.email or 'U')|urlencode }}&background=6366f1&color=fff&bold=true" style="width: 42px; height: 42px; border-radius: 12px; border: 2px solid rgba(99, 102, 241, 0.2);">
+                                </div>
+                                <div>
+                                    <span style="font-weight: 600; font-size: 1rem; color: var(--text-main); display: block;" class="contact-name">{{ contact.name }}</span>
+                                    <span style="font-size: 0.8rem; color: var(--text-dim);" class="contact-email">{{ contact.email }}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td style="padding: 1.2rem 1rem; border-bottom: 1px solid rgba(255,255,255,0.02); cursor: pointer;" onclick="openDrawer(this.previousElementSibling)">
+                            <div style="font-size: 0.9rem; color: var(--text-main);" class="contact-company">{{ contact.company or '—' }}</div>
+                        </td>
+                        <td style="padding: 1.2rem 1rem; border-bottom: 1px solid rgba(255,255,255,0.02); cursor: pointer;" onclick="openDrawer(this.previousElementSibling.previousElementSibling)">
+                            {% set interest = contact.interest or 'New' %}
+                            {% set badge_class = 'status-new' %}
+                            {% set icon = 'fa-star' %}
+                            {% if 'High' in interest %}{% set badge_class = 'status-high' %}{% set icon = 'fa-fire-alt' %}
+                            {% elif 'Medium' in interest %}{% set badge_class = 'status-medium' %}{% set icon = 'fa-bolt' %}
+                            {% elif 'Low' in interest %}{% set badge_class = 'status-low' %}{% set icon = 'fa-snowflake' %}
+                            {% endif %}
+                            <span class="status-badge {{ badge_class }}"><i class="fas {{ icon }}"></i> {{ interest }}</span>
+                        </td>
+                        <td style="padding: 1.2rem 2rem; border-bottom: 1px solid rgba(255,255,255,0.02); text-align: right;">
+                            <button class="btn btn-secondary" onclick="confirmDelete('{{ contact.email }}', '{{ contact.name }}')" style="width: 36px; height: 36px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 10px; background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.1); color: #ef4444; margin-left: auto;">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% else %}
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 6rem 3rem; color: var(--text-dim);">
+                            <div style="width: 80px; height: 80px; border-radius: 50%; background: rgba(255,255,255,0.02); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem auto;">
+                                <i class="fas fa-address-book" style="font-size: 2.5rem; color: rgba(255,255,255,0.1);"></i>
+                            </div>
+                            <h4 style="color: var(--text-main); margin-bottom: 0.5rem; font-size: 1.2rem;">No Contacts Found</h4>
+                            <p style="margin-bottom: 2rem; font-size: 0.95rem;">Start building your network by syncing your communications.</p>
+                            <button class="btn btn-primary" onclick="window.location.href='{{ url_for('main.integrations') }}'">
+                                <i class="fas fa-sync"></i> Sync with External Sources
+                            </button>
+                        </td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Floating Action Bar for Batch Actions -->
+<div id="batchActionBar" class="floating-action-bar">
+    <div style="display: flex; align-items: center; gap: 1rem;">
+        <span class="selected-count"><span id="selectedCountNum">0</span> selected</span>
+        <button class="btn btn-secondary" onclick="exportSelected()" style="padding: 0.6rem 1.2rem; font-size: 0.9rem;">
+            <i class="fas fa-file-export"></i> Export
+        </button>
+        <button class="btn btn-primary" onclick="batchDelete()" style="background: linear-gradient(135deg, #ef4444, #b91c1c); padding: 0.6rem 1.2rem; font-size: 0.9rem;">
+            <i class="fas fa-trash-alt"></i> Delete Selected
+        </button>
+    </div>
+    <div style="width: 1px; height: 24px; background: rgba(255,255,255,0.1); margin: 0 0.5rem;"></div>
+    <button class="btn btn-secondary" onclick="clearSelection()" style="padding: 0.6rem; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-color: transparent;">
+        <i class="fas fa-times"></i>
+    </button>
+</div>
+
+<!-- Drawer for Contact Details -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="contactDrawer">
+    <div class="drawer-header">
+        <button class="drawer-close" onclick="closeDrawer()"><i class="fas fa-times"></i></button>
+        <div style="display: flex; align-items: center; gap: 1.5rem;">
+            <img id="drawerAvatar" src="" style="width: 72px; height: 72px; border-radius: 20px; border: 2px solid rgba(255,255,255,0.2); box-shadow: 0 10px 20px rgba(0,0,0,0.3);">
+            <div>
+                <h2 id="drawerName" style="margin: 0; font-size: 1.5rem; font-weight: 700; color: white;"></h2>
+                <div id="drawerCompany" style="color: var(--primary-light); font-size: 0.95rem; margin-top: 0.2rem; font-weight: 500;"></div>
+            </div>
+        </div>
+    </div>
+    <div class="drawer-body">
+        <div class="form-group-modern">
+            <label>Primary Email</label>
+            <div style="display: flex; align-items: center; gap: 0.8rem; background: rgba(0,0,0,0.2); border-radius: 12px; padding: 1rem; border: 1px solid rgba(255,255,255,0.05);">
+                <i class="fas fa-envelope" style="color: var(--text-muted); font-size: 1.1rem;"></i>
+                <span id="drawerEmail" style="color: white; font-size: 0.95rem; word-break: break-all;"></span>
+            </div>
+        </div>
+        
+        <div class="form-group-modern">
+            <label>Phone Number</label>
+            <div style="display: flex; align-items: center; gap: 0.8rem; background: rgba(0,0,0,0.2); border-radius: 12px; padding: 1rem; border: 1px solid rgba(255,255,255,0.05);">
+                <i class="fas fa-phone" style="color: var(--text-muted); font-size: 1.1rem;"></i>
+                <span id="drawerPhone" style="color: white; font-size: 0.95rem;"></span>
+            </div>
+        </div>
+
+        <div class="form-group-modern" id="drawerExtraEmailsSection" style="display: none;">
+            <label>Alternative Emails</label>
+            <div id="drawerExtraEmails" style="display: flex; flex-direction: column; gap: 0.5rem;"></div>
+        </div>
+
+        <div class="form-group-modern" id="drawerSocialsSection" style="display: none;">
+            <label>Social Profiles</label>
+            <div id="drawerSocials" style="display: flex; flex-direction: column; gap: 0.5rem;"></div>
+        </div>
+        
+        <div class="form-group-modern">
+            <label>Intelligence Segment</label>
+            <div id="drawerInterestWrapper" style="margin-top: 0.5rem;"></div>
+        </div>
+    </div>
+    <div class="drawer-footer">
+        <button class="btn btn-secondary" style="flex: 1;" onclick="closeDrawer()">Wait</button>
+        <button class="btn btn-primary" style="flex: 1;" onclick="window.location.href='mailto:' + document.getElementById('drawerEmail').innerText">
+            <i class="fas fa-paper-plane"></i> Send Email
+        </button>
+    </div>
+</div>
+
+<script>
+    let currentFilter = 'all';
+
+    function setFilter(filterType, el) {
+        currentFilter = filterType;
+        
+        // Update styling
+        document.querySelectorAll('.filter-item').forEach(item => {
+            item.classList.remove('active');
+            const icon = item.querySelector('i');
+            if(icon && !item.innerHTML.includes('ef4444') && !item.innerHTML.includes('fbbf24')) {
+                 icon.style.color = 'inherit';
+            }
+        });
+        el.classList.add('active');
+        const activeIcon = el.querySelector('i');
+        if(activeIcon && !el.innerHTML.includes('ef4444') && !el.innerHTML.includes('fbbf24')) {
+             activeIcon.style.color = 'var(--primary-light)';
+        }
+        
+        // Update header text
+        const showingText = document.getElementById('showingCount');
+        if(filterType === 'all') showingText.innerText = 'Showing all contacts';
+        else if(filterType === 'High') showingText.innerText = 'Showing hot leads';
+        else if(filterType === 'New') showingText.innerText = 'Showing recently added';
+        
+        filterContacts();
+    }
+
+    function filterContacts() {
+        const searchText = document.getElementById('contactSearch').value.toLowerCase();
+        const tbody = document.getElementById('contactsTableBody');
+        const rows = tbody.getElementsByClassName('contact-row');
+
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            const nameEl = row.querySelector('.contact-name');
+            const name = nameEl ? nameEl.innerText.toLowerCase() : '';
+            const emailEl = row.querySelector('.contact-email');
+            const email = emailEl ? emailEl.innerText.toLowerCase() : '';
+            const companyEl = row.querySelector('.contact-company');
+            const company = companyEl ? companyEl.innerText.toLowerCase() : '';
+            const interest = row.getAttribute('data-interest') || 'New';
+            
+            const matchesSearch = name.includes(searchText) || email.includes(searchText) || company.includes(searchText);
+            
+            let matchesStatus = true;
+            if (currentFilter !== 'all') {
+                if (currentFilter === 'New' && !(interest === 'New' || interest === 'Cold')) {
+                    matchesStatus = false;
+                } else if (currentFilter === 'High' && !interest.includes('High')) {
+                    matchesStatus = false;
+                }
+            }
+
+            if (matchesSearch && matchesStatus) {
+                row.style.display = "";
+            } else {
+                row.style.display = "none";
+            }
+        }
+        
+        // When filtering changes, rows that might have been selected could be hidden. 
+        // Deselect hidden rows to be safe.
+        toggleAll({checked: document.getElementById('selectAllCheckbox').checked});
+    }
+
+    // Selection Logic
+    function toggleAll(source) {
+        const checkboxes = document.querySelectorAll('.row-checkbox');
+        checkboxes.forEach(cb => {
+            const row = cb.closest('tr');
+            if(row.style.display !== 'none') {
+                cb.checked = source.checked;
+            } else {
+                cb.checked = false;
+            }
+        });
+        updateSelection();
+    }
+
+    function updateSelection() {
+        const checkboxes = document.querySelectorAll('.row-checkbox:checked');
+        const count = checkboxes.length;
+        const actionBar = document.getElementById('batchActionBar');
+        const selectAllCb = document.getElementById('selectAllCheckbox');
+        
+        document.getElementById('selectedCountNum').innerText = count;
+        
+        document.querySelectorAll('.contact-row').forEach(row => {
+            const cb = row.querySelector('.row-checkbox');
+            if(cb && cb.checked) {
+                row.classList.add('selected');
+            } else {
+                row.classList.remove('selected');
+            }
+        });
+
+        if(count > 0) {
+            actionBar.classList.add('visible');
+        } else {
+            actionBar.classList.remove('visible');
+            if(selectAllCb) selectAllCb.checked = false;
+        }
+    }
+
+    function clearSelection() {
+        document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = false);
+        document.getElementById('selectAllCheckbox').checked = false;
+        updateSelection();
+    }
+
+    async function batchDelete() {
+        const checkboxes = document.querySelectorAll('.row-checkbox:checked');
+        if(checkboxes.length === 0) return;
+        
+        if(!confirm(`Are you sure you want to delete ${checkboxes.length} contacts? This action is permanent.`)) {
+            return;
+        }
+
+        const emails = Array.from(checkboxes).map(cb => cb.value);
+        
+        try {
+            const response = await fetch('{{ url_for("main.batch_delete_contacts") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                },
+                body: JSON.stringify({ emails })
+            });
+            
+            if(response.ok) {
+                window.location.reload();
+            } else {
+                alert("Failed to delete contacts.");
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Error during batch delete.");
+        }
+    }
+
+    function exportSelected() {
+        // Simple fallback: export all 
+        alert(`Exporting contacts...`);
+        window.location.href = "{{ url_for('main.export_contacts') }}";
+        clearSelection();
+    }
+
+    // Drawer Logic
+    function openDrawer(tdElement) {
+        if(event.target.closest('.custom-checkbox-wrapper') || event.target.closest('.btn')) return;
+        
+        const contactDataStr = tdElement.getAttribute('data-contact');
+        if(!contactDataStr) return;
+        
+        const contact = JSON.parse(contactDataStr);
+        
+        document.getElementById('drawerName').innerText = contact.name || 'Unknown Entity';
+        document.getElementById('drawerCompany').innerText = contact.company || 'No Organization Provided';
+        document.getElementById('drawerAvatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(contact.name || contact.email || 'U')}&background=6366f1&color=fff&size=128&bold=true`;
+        document.getElementById('drawerEmail').innerText = contact.email || 'N/A';
+        document.getElementById('drawerPhone').innerText = contact.phone || 'N/A';
+        
+        const extraEmailsContainer = document.getElementById('drawerExtraEmailsSection');
+        const extraEmailsDiv = document.getElementById('drawerExtraEmails');
+        extraEmailsDiv.innerHTML = '';
+        try {
+            const emails = JSON.parse(contact.email2 || '[]');
+            if(emails.length > 0) {
+                emails.forEach(e => {
+                    extraEmailsDiv.innerHTML += `
+                        <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.2); padding: 0.8rem 1rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+                            <span style="color: var(--text-dim); font-size: 0.8rem; text-transform: uppercase;">${e.label}</span>
+                            <a href="mailto:${e.value}" style="color: var(--primary-light); font-weight: 500; text-decoration: none; font-size: 0.9rem;">${e.value}</a>
+                        </div>
+                    `;
+                });
+                extraEmailsContainer.style.display = 'block';
+            } else {
+                extraEmailsContainer.style.display = 'none';
+            }
+        } catch(e) { extraEmailsContainer.style.display = 'none'; }
+        
+        const socialsContainer = document.getElementById('drawerSocialsSection');
+        const socialsDiv = document.getElementById('drawerSocials');
+        socialsDiv.innerHTML = '';
+        try {
+            const socials = JSON.parse(contact.social_media || '[]');
+            if(socials.length > 0) {
+                socials.forEach(s => {
+                    let icon = 'fas fa-link';
+                    const lbl = (s.label || '').toLowerCase();
+                    if(lbl.includes('linkedin')) icon = 'fab fa-linkedin';
+                    else if(lbl.includes('twitter') || lbl.includes('x')) icon = 'fab fa-twitter';
+                    else if(lbl.includes('github')) icon = 'fab fa-github';
+                    
+                    const isUrl = (s.value || '').startsWith('http');
+                    const valHtml = isUrl ? `<a href="${s.value}" target="_blank" style="color: var(--primary-light); text-decoration: none;">${s.value}</a>` : `<span style="color: white;">${s.value}</span>`;
+                    
+                    socialsDiv.innerHTML += `
+                        <div style="display: flex; align-items: center; gap: 1rem; background: rgba(0,0,0,0.2); padding: 0.8rem 1rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+                            <div style="width: 36px; height: 36px; background: rgba(255,255,255,0.05); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 1.1rem;"><i class="${icon}"></i></div>
+                            <div style="flex-grow: 1;">
+                                <div style="font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase;">${s.label}</div>
+                                <div style="font-size: 0.95rem; font-weight: 500;">${valHtml}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+                socialsContainer.style.display = 'block';
+            } else {
+                socialsContainer.style.display = 'none';
+            }
+        } catch(e) { socialsContainer.style.display = 'none'; }
+        
+        const interestStr = contact.interest || 'New';
+        let badgeClass = 'status-new';
+        let badgeIcon = 'fa-star';
+        if(interestStr.includes('High')) { badgeClass = 'status-high'; badgeIcon = 'fa-fire-alt'; }
+        else if(interestStr.includes('Medium')) { badgeClass = 'status-medium'; badgeIcon = 'fa-bolt'; }
+        else if(interestStr.includes('Low')) { badgeClass = 'status-low'; badgeIcon = 'fa-snowflake'; }
+        
+        document.getElementById('drawerInterestWrapper').innerHTML = `<span class="status-badge ${badgeClass}" style="font-size: 0.95rem; padding: 0.6rem 1.2rem; border-radius: 12px;"><i class="fas ${badgeIcon}"></i> ${interestStr}</span>`;
+
+        // Change drawer footer close button text just to be sure
+        document.querySelector('.drawer-footer .btn-secondary').innerText = 'Close Drawer';
+
+        document.getElementById('drawerOverlay').classList.add('show');
+        document.getElementById('contactDrawer').classList.add('open');
+    }
+
+    function closeDrawer() {
+        document.getElementById('drawerOverlay').classList.remove('show');
+        document.getElementById('contactDrawer').classList.remove('open');
+    }
+
+    function confirmDelete(email, name) {
+        document.getElementById('deleteContactName').textContent = name;
+        const btn = document.getElementById('confirmDeleteBtn');
+        btn.onclick = function(e) {
+            e.preventDefault();
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = "{{ url_for('main.delete_contact', email='') }}" + encodeURIComponent(email);
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = 'csrf_token';
+            csrfInput.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            form.appendChild(csrfInput);
+            document.body.appendChild(form);
+            form.submit();
+        };
+        document.getElementById('deleteModal').style.display = 'flex';
+    }
+    
+    // Staggered entry animations
+    document.addEventListener('DOMContentLoaded', () => {
+        const rows = document.querySelectorAll('.contact-row');
+        rows.forEach((row, index) => {
+            row.style.animation = `fadeIn 0.5s ease forwards ${index * 0.05}s`;
+            row.style.opacity = '0';
+        });
+    });
+</script>
+{% endblock %}

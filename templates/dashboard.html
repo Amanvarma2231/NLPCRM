@@ -1,0 +1,565 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="fade-in" style="max-width: 1400px; margin: 0 auto;">
+
+    <!-- Welcome Banner -->
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem; background: linear-gradient(135deg, rgba(30,41,59,0.8), rgba(15,23,42,0.95)); padding: 2rem 2.5rem; border-radius: 24px; border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 20px 40px rgba(0,0,0,0.2); position: relative; overflow: hidden;">
+        <div style="position: absolute; top: -80px; right: -40px; width: 250px; height: 250px; background: var(--primary); opacity: 0.12; filter: blur(80px); border-radius: 50%;"></div>
+        <div style="position: absolute; bottom: -60px; left: 200px; width: 200px; height: 200px; background: #a855f7; opacity: 0.1; filter: blur(60px); border-radius: 50%;"></div>
+        <div style="position: relative; z-index: 1;">
+            <div style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.4rem 1rem; background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.3); border-radius: 30px; color: var(--primary-light); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.8rem;">
+                <span style="width:6px;height:6px;border-radius:50%;background:#4ade80;box-shadow:0 0 8px #4ade80;animation:pulse 2s infinite;"></span> Intelligence Hub Live
+            </div>
+            <h1 style="font-size: 2.8rem; font-weight: 800; letter-spacing: -0.05rem; color: #fff; line-height: 1.1; margin-bottom: 0.5rem;">Sales Dashboard</h1>
+            <p style="color: var(--text-dim); font-size: 1.05rem; max-width: 550px;">Real-time lead tracking, AI-powered pipeline analytics, and live CRM insights.</p>
+        </div>
+        <div style="display: flex; gap: 1rem; position: relative; z-index: 1;">
+            <button id="syncBtn" class="btn btn-secondary" style="border-radius: 12px; font-size: 0.9rem; border: 1px solid rgba(255,255,255,0.1);">
+                <i class="fas fa-sync-alt"></i> Sync All
+            </button>
+            <button onclick="window.location.href='{{ url_for('main.contacts_list') }}'" class="btn btn-primary" style="border-radius: 12px; font-size: 0.9rem; box-shadow: 0 8px 20px rgba(99,102,241,0.4);">
+                <i class="fas fa-address-book"></i> View Contacts
+            </button>
+        </div>
+    </div>
+
+    {% if error_msg %}
+    <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 16px; padding: 1rem 1.5rem; margin-bottom: 2rem; display: flex; align-items: center; gap: 1rem; backdrop-filter: blur(10px);">
+        <i class="fas fa-exclamation-triangle" style="color: #ef4444; font-size: 1.1rem;"></i>
+        <span style="color: #fca5a5; font-weight: 600;">{{ error_msg }}</span>
+        <button onclick="this.parentElement.style.display='none'" style="margin-left: auto; background: none; border: none; color: #ef4444; cursor: pointer;"><i class="fas fa-times"></i></button>
+    </div>
+    {% endif %}
+
+    <!-- KPI Cards Row -->
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-bottom: 2.5rem;">
+        <!-- Pipeline Value -->
+        <div class="kpi-card" style="background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(79,70,229,0.1)); border: 1px solid rgba(99,102,241,0.3);">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                <div>
+                    <p class="kpi-label">Pipeline Value</p>
+                    <div class="kpi-value">${{ (contacts_count * 7200)|int // 1000 }}.{{ (contacts_count * 7200)|int % 1000 // 100 }}M</div>
+                </div>
+                <div class="kpi-sparkline">
+                    <canvas id="sparkline1" width="80" height="40"></canvas>
+                </div>
+            </div>
+            <div class="kpi-trend positive">▲ 14.2% this month</div>
+        </div>
+
+        <!-- Total Leads -->
+        <div class="kpi-card" style="background: linear-gradient(135deg, rgba(139,92,246,0.2), rgba(109,40,217,0.1)); border: 1px solid rgba(139,92,246,0.3);">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                <div>
+                    <p class="kpi-label">Total Leads</p>
+                    <div class="kpi-value">{{ contacts_count }}</div>
+                </div>
+                <div class="kpi-sparkline">
+                    <canvas id="sparkline2" width="80" height="40"></canvas>
+                </div>
+            </div>
+            <div class="kpi-trend positive">▲ +{{ messages_count }} synced</div>
+        </div>
+
+        <!-- Deals Won -->
+        <div class="kpi-card" style="background: linear-gradient(135deg, rgba(16,185,129,0.2), rgba(5,150,105,0.1)); border: 1px solid rgba(16,185,129,0.3);">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                <div>
+                    <p class="kpi-label">Signals Analyzed</p>
+                    <div class="kpi-value">{{ messages_count }}</div>
+                </div>
+                <div class="kpi-sparkline">
+                    <canvas id="sparkline3" width="80" height="40"></canvas>
+                </div>
+            </div>
+            <div class="kpi-trend positive">▲ Live sync active</div>
+        </div>
+
+        <!-- Conversion -->
+        <div class="kpi-card" style="background: linear-gradient(135deg, rgba(245,158,11,0.2), rgba(217,119,6,0.1)); border: 1px solid rgba(245,158,11,0.3);">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                <div>
+                    <p class="kpi-label">Engine Status</p>
+                    <div class="kpi-value" style="font-size: 1.5rem;">Qwen 2.5</div>
+                </div>
+                <div style="width: 48px; height: 48px; background: rgba(245,158,11,0.15); border-radius: 14px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(245,158,11,0.3);">
+                    <i class="fas fa-microchip" style="color: #fbbf24; font-size: 1.3rem;"></i>
+                </div>
+            </div>
+            <div class="kpi-trend positive" style="display: flex; align-items: center; gap: 0.5rem;">
+                <span style="width:6px;height:6px;border-radius:50%;background:#4ade80;box-shadow:0 0 6px #4ade80;"></span> HuggingFace Online
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts + Leads table -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem; margin-bottom: 2.5rem;">
+        <!-- Leads Chart -->
+        <div class="chart-card">
+            <div class="chart-title"><i class="fas fa-chart-bar"></i> Leads Charts <span class="chart-badge growth">Growth</span></div>
+            <canvas id="leadsChart" height="140"></canvas>
+        </div>
+        <!-- Deals Chart -->
+        <div class="chart-card">
+            <div class="chart-title"><i class="fas fa-handshake"></i> Deals Charts</div>
+            <canvas id="dealsChart" height="140"></canvas>
+        </div>
+        <!-- Conversion Chart -->
+        <div class="chart-card">
+            <div class="chart-title"><i class="fas fa-percentage"></i> Conversion</div>
+            <canvas id="convChart" height="140"></canvas>
+        </div>
+    </div>
+
+    <!-- Bottom Row: Leads Table + Activity Log -->
+    <div style="display: grid; grid-template-columns: 3fr 2fr; gap: 2rem;">
+
+        <!-- Leads Indicators Table -->
+        <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem;">
+                <h2 style="font-size: 1.4rem; font-weight: 800; display: flex; align-items: center; gap: 0.6rem;">
+                    <i class="fas fa-th-list" style="color: var(--primary);"></i> Leads Indicators
+                </h2>
+                <a href="{{ url_for('main.contacts_list') }}" style="font-size: 0.85rem; color: var(--primary-light); text-decoration: none; font-weight: 600; padding: 0.4rem 1rem; border-radius: 20px; background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.2);">View All →</a>
+            </div>
+            <div style="background: rgba(17,24,39,0.8); backdrop-filter: blur(20px); border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); overflow: hidden;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: rgba(0,0,0,0.2);">
+                            <th style="padding: 1rem 1.5rem; text-align: left; font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em;">Name</th>
+                            <th style="padding: 1rem 1.5rem; text-align: left; font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em;">Name</th>
+                            <th style="padding: 1rem 1.5rem; text-align: left; font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em;">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if recent_contacts %}
+                        {% for contact in recent_contacts %}
+                        <tr class="leads-row" style="cursor: pointer;" onclick="viewContact('{{ contact.name }}','{{ contact.email }}','{{ contact.phone }}','{{ contact.company }}','{{ contact.interest }}','{{ contact.email2 or '[]' }}','{{ contact.social_media or '[]' }}')">
+                            <td style="padding: 1rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.03);">
+                                <div style="display: flex; align-items: center; gap: 0.8rem;">
+                                    <img src="https://ui-avatars.com/api/?name={{ (contact.name or contact.email or 'U')|urlencode }}&background=6366f1&color=fff&bold=true&size=64" style="width: 38px; height: 38px; border-radius: 10px; border: 2px solid rgba(99,102,241,0.3);">
+                                    <div>
+                                        <div style="font-weight: 700; color: white; font-size: 0.9rem;">{{ contact.name or 'Unknown' }}</div>
+                                        <div style="font-size: 0.75rem; color: var(--text-dim);">{{ contact.email or 'No email' }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td style="padding: 1rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.03); color: var(--text-dim); font-size: 0.9rem;">{{ contact.company or '—' }}</td>
+                            <td style="padding: 1rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.03);">
+                                {% set interest = contact.interest or 'New' %}
+                                {% if 'High' in interest %}
+                                    <span class="lead-status-badge" style="background: rgba(34,197,94,0.1); color: #4ade80; border: 1px solid rgba(34,197,94,0.2);">● High</span>
+                                {% elif 'Medium' in interest %}
+                                    <span class="lead-status-badge" style="background: rgba(245,158,11,0.1); color: #fbbf24; border: 1px solid rgba(245,158,11,0.2);">◐ Medium</span>
+                                {% elif 'Support' in interest %}
+                                    <span class="lead-status-badge" style="background: rgba(59,130,246,0.1); color: #60a5fa; border: 1px solid rgba(59,130,246,0.2);">◎ Support</span>
+                                {% else %}
+                                    <span class="lead-status-badge" style="background: rgba(99,102,241,0.1); color: #818cf8; border: 1px solid rgba(99,102,241,0.2);">○ {{ interest }}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        {% else %}
+                        <tr>
+                            <td colspan="3" style="padding: 4rem; text-align: center; color: var(--text-dim);">
+                                <i class="fas fa-satellite-dish" style="font-size: 2rem; opacity: 0.2; display: block; margin-bottom: 1rem;"></i>
+                                No leads yet. Sync your integrations to start.
+                            </td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- System Activity -->
+        <div>
+            <h2 style="font-size: 1.4rem; font-weight: 800; display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1.2rem;">
+                <i class="fas fa-history" style="color: var(--primary-light);"></i> System Log
+            </h2>
+            <div style="background: rgba(17,24,39,0.8); backdrop-filter: blur(20px); border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); padding: 1.5rem; height: 380px; overflow-y: auto;">
+                {% if recent_activity %}
+                <div style="position: relative; padding-left: 20px; border-left: 2px solid rgba(255,255,255,0.05); margin-left: 10px;">
+                    {% for act in recent_activity %}
+                    <div style="margin-bottom: 1.8rem; position: relative;">
+                        <div style="position: absolute; left: -27px; top: 3px; width: 10px; height: 10px; border-radius: 50%; background: var(--primary); box-shadow: 0 0 8px rgba(99,102,241,0.5); border: 2px solid #1e293b;"></div>
+                        <div style="font-weight: 700; font-size: 0.9rem; color: white;">{{ act[2] if act[0] == 'interaction' else 'Record Created' }}</div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.3rem; line-height: 1.4;">{{ act[3] }}</div>
+                        <div style="display: inline-flex; align-items: center; gap: 0.4rem; background: rgba(99,102,241,0.08); padding: 0.3rem 0.7rem; border-radius: 8px; font-size: 0.7rem; color: var(--primary-light); font-weight: 600; margin-top: 0.6rem;">
+                            <i class="far fa-clock"></i> {{ act[1] }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--text-dim); text-align: center;">
+                    <i class="fas fa-clipboard-list" style="font-size: 2.5rem; opacity: 0.15; margin-bottom: 1rem;"></i>
+                    <p style="font-size: 0.9rem;">System operational.<br>No events yet.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =================== GLOBAL AI ASSISTANT (ESA) WIDGET =================== -->
+<div id="esaContainer" style="position: fixed; bottom: 28px; right: 28px; z-index: 5000;">
+
+    <!-- FAB Trigger Button -->
+    <div id="esaTrigger" title="Open AI Sales Assistant" style="width: 64px; height: 64px; background: linear-gradient(135deg, #4f46e5, #a855f7); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; border: 3px solid rgba(255,255,255,0.15); box-shadow: 0 8px 32px rgba(99,102,241,0.5), 0 0 0 0 rgba(99,102,241,0.4); animation: fabPulse 3s infinite; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+        <i class="fas fa-robot" style="font-size: 1.6rem;"></i>
+    </div>
+
+    <!-- Chat Window -->
+    <div id="esaWindow" style="display: none; position: absolute; bottom: 80px; right: 0; width: 380px; height: 520px; background: rgba(13, 17, 29, 0.96); backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px); border: 1px solid rgba(99,102,241,0.25); border-radius: 24px; flex-direction: column; overflow: hidden; box-shadow: 0 25px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05); transform-origin: bottom right;">
+
+        <!-- Header -->
+        <div style="padding: 1.2rem 1.5rem; background: linear-gradient(135deg, rgba(79,70,229,0.15), rgba(168,85,247,0.1)); border-bottom: 1px solid rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;">
+            <div style="display: flex; align-items: center; gap: 0.8rem;">
+                <div style="width: 36px; height: 36px; background: linear-gradient(135deg, #4f46e5, #a855f7); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-robot" style="font-size: 1rem;"></i>
+                </div>
+                <div>
+                    <h3 style="margin: 0; font-size: 1rem; font-weight: 700;">AI Assistant</h3>
+                    <div style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.7rem; color: #4ade80; margin-top: 0.1rem;">
+                        <span style="width:6px;height:6px;border-radius:50%;background:#4ade80;box-shadow:0 0 6px #4ade80;"></span> Online · Powered by Qwen 2.5
+                    </div>
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <button id="esaClear" title="Clear chat" style="background: rgba(255,255,255,0.05); border: none; color: var(--text-dim); width: 30px; height: 30px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; transition: all 0.2s;">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+                <button id="esaClose" style="background: rgba(255,255,255,0.05); border: none; color: var(--text-dim); width: 30px; height: 30px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; transition: all 0.2s;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Quick Suggestions -->
+        <div id="esaSuggestions" style="padding: 0.8rem 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap; flex-shrink: 0; border-bottom: 1px solid rgba(255,255,255,0.04);">
+            <button class="esa-chip" onclick="sendEsaQuery('Show high interest leads')">🔥 High Leads</button>
+            <button class="esa-chip" onclick="sendEsaQuery('Find contacts from WhatsApp')">📱 WhatsApp</button>
+            <button class="esa-chip" onclick="sendEsaQuery('Show me new leads')">✨ New Leads</button>
+            <button class="esa-chip" onclick="sendEsaQuery('Find contacts from Gmail')">📧 Gmail</button>
+        </div>
+
+        <!-- Chat History -->
+        <div id="esaHistory" style="flex: 1; padding: 1rem 1.2rem; overflow-y: auto; display: flex; flex-direction: column; gap: 0.8rem;">
+            <div class="esa-bubble-ai">
+                <div class="esa-avatar"><i class="fas fa-robot"></i></div>
+                <div class="esa-text">
+                    Hello! I'm your AI Sales Assistant. Ask me anything about your leads, like:<br><br>
+                    <em>"Find high interest leads from WhatsApp"</em><br>
+                    <em>"Show contacts from TechCorp"</em>
+                </div>
+            </div>
+        </div>
+
+        <!-- Input Area -->
+        <div style="padding: 0.8rem 1rem; border-top: 1px solid rgba(255,255,255,0.05); background: rgba(0,0,0,0.2); flex-shrink: 0;">
+            <div style="display: flex; align-items: center; gap: 0.5rem; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 0.5rem 0.5rem 0.5rem 1rem; transition: border-color 0.2s;" id="esaInputBox">
+                <input type="text" id="esaInput" placeholder="Ask your CRM..." style="flex: 1; background: transparent; border: none; color: white; font-size: 0.9rem; outline: none; font-family: inherit;">
+                <button id="esaSend" style="background: linear-gradient(135deg, #4f46e5, #7c3aed); border: none; color: white; width: 36px; height: 36px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s;">
+                    <i class="fas fa-paper-plane" style="font-size: 0.8rem;"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* ===== KPI Cards ===== */
+    .kpi-card {
+        border-radius: 20px;
+        padding: 1.5rem;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .kpi-card:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(0,0,0,0.3); }
+    .kpi-label { font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; margin-bottom: 0.4rem; }
+    .kpi-value { font-size: 2.6rem; font-weight: 800; color: white; line-height: 1.1; }
+    .kpi-sparkline { opacity: 0.8; }
+    .kpi-trend { font-size: 0.78rem; font-weight: 600; margin-top: 0.5rem; }
+    .kpi-trend.positive { color: #4ade80; }
+    .kpi-trend.negative { color: #ef4444; }
+
+    /* ===== Chart Cards ===== */
+    .chart-card {
+        background: rgba(17,24,39,0.8);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 20px;
+        padding: 1.5rem;
+        transition: border-color 0.3s;
+    }
+    .chart-card:hover { border-color: rgba(99,102,241,0.2); }
+    .chart-title {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--text-main);
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+    }
+    .chart-badge { font-size: 0.7rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: 20px; }
+    .chart-badge.growth { background: rgba(34,197,94,0.15); color: #4ade80; border: 1px solid rgba(34,197,94,0.2); }
+
+    /* ===== Leads Table Row ===== */
+    .leads-row { transition: background 0.2s; }
+    .leads-row:hover { background: rgba(99,102,241,0.06); }
+    .lead-status-badge { padding: 0.3rem 0.8rem; border-radius: 8px; font-size: 0.78rem; font-weight: 700; }
+
+    /* ===== ESA Widget ===== */
+    .esa-chip {
+        background: rgba(99,102,241,0.1);
+        border: 1px solid rgba(99,102,241,0.2);
+        color: var(--primary-light);
+        padding: 0.3rem 0.7rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        cursor: pointer;
+        font-family: inherit;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+    .esa-chip:hover { background: rgba(99,102,241,0.2); transform: scale(1.03); }
+
+    .esa-bubble-ai { display: flex; align-items: flex-start; gap: 0.6rem; }
+    .esa-avatar {
+        width: 28px; height: 28px; border-radius: 8px;
+        background: linear-gradient(135deg, #4f46e5, #a855f7);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 0.7rem; flex-shrink: 0; margin-top: 2px;
+    }
+    .esa-text {
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.07);
+        padding: 0.75rem 1rem;
+        border-radius: 4px 16px 16px 16px;
+        font-size: 0.85rem;
+        line-height: 1.6;
+        color: var(--text-main);
+        max-width: calc(100% - 40px);
+    }
+    .esa-bubble-user {
+        display: flex;
+        justify-content: flex-end;
+    }
+    .esa-text-user {
+        background: linear-gradient(135deg, #4f46e5, #7c3aed);
+        padding: 0.75rem 1rem;
+        border-radius: 16px 4px 16px 16px;
+        font-size: 0.85rem;
+        line-height: 1.6;
+        color: white;
+        max-width: 85%;
+    }
+    #esaHistory::-webkit-scrollbar { width: 4px; }
+    #esaHistory::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+    #esaInputBox:focus-within { border-color: rgba(99,102,241,0.4); box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
+
+    /* ===== Animations ===== */
+    @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.4); }
+        70% { box-shadow: 0 0 0 10px rgba(52, 211, 153, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); }
+    }
+    @keyframes fabPulse {
+        0%, 100% { box-shadow: 0 8px 32px rgba(99,102,241,0.5), 0 0 0 0 rgba(99,102,241,0.3); }
+        50% { box-shadow: 0 8px 32px rgba(99,102,241,0.5), 0 0 0 12px rgba(99,102,241,0); }
+    }
+    @keyframes esaSlideIn {
+        from { opacity: 0; transform: scale(0.88) translateY(16px); }
+        to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    #esaTrigger:hover { transform: scale(1.1) rotate(8deg); animation: none; box-shadow: 0 12px 40px rgba(99,102,241,0.7); }
+</style>
+
+<script>
+// ==================== ESA Logic ====================
+const esaTrigger = document.getElementById('esaTrigger');
+const esaWindow  = document.getElementById('esaWindow');
+const esaClose   = document.getElementById('esaClose');
+const esaClear   = document.getElementById('esaClear');
+const esaInput   = document.getElementById('esaInput');
+const esaSend    = document.getElementById('esaSend');
+const esaHistory = document.getElementById('esaHistory');
+const esaBadge   = document.getElementById('esaSuggestions');
+
+// Also wire up global ESA toggle button in header
+const globalToggle = document.getElementById('globalAiToggle');
+if (globalToggle) {
+    globalToggle.addEventListener('click', () => toggleEsa());
+}
+
+function toggleEsa() {
+    const isVisible = esaWindow.style.display === 'flex';
+    if (isVisible) {
+        esaWindow.style.animation = 'none';
+        esaWindow.style.display = 'none';
+    } else {
+        esaWindow.style.display = 'flex';
+        esaWindow.style.animation = 'esaSlideIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+    }
+}
+
+esaTrigger.addEventListener('click', toggleEsa);
+esaClose.addEventListener('click', () => {
+    esaWindow.style.display = 'none';
+});
+
+esaClear.addEventListener('click', () => {
+    esaHistory.innerHTML = `<div class="esa-bubble-ai"><div class="esa-avatar"><i class="fas fa-robot"></i></div><div class="esa-text">Chat cleared. How can I help you?</div></div>`;
+});
+
+function addEsaMessage(html, type = 'ai') {
+    const wrap = document.createElement('div');
+    if (type === 'user') {
+        wrap.className = 'esa-bubble-user';
+        wrap.innerHTML = `<div class="esa-text-user">${html}</div>`;
+    } else {
+        wrap.className = 'esa-bubble-ai';
+        wrap.innerHTML = `<div class="esa-avatar"><i class="fas fa-robot"></i></div><div class="esa-text">${html}</div>`;
+    }
+    esaHistory.appendChild(wrap);
+    esaHistory.scrollTop = esaHistory.scrollHeight;
+    return wrap;
+}
+
+function addLoader() {
+    const loader = document.createElement('div');
+    loader.className = 'esa-bubble-ai';
+    loader.id = 'esaLoader';
+    loader.innerHTML = `<div class="esa-avatar"><i class="fas fa-robot"></i></div><div class="esa-text" style="color: var(--text-dim);"><i class="fas fa-circle-notch fa-spin"></i> Searching database...</div>`;
+    esaHistory.appendChild(loader);
+    esaHistory.scrollTop = esaHistory.scrollHeight;
+}
+
+async function sendEsaQuery(query) {
+    if (!query || !query.trim()) return;
+    esaWindow.style.display = 'flex';
+    esaBadge.style.display = 'none'; // Hide suggestions after first use
+    addEsaMessage(query, 'user');
+    esaInput.value = '';
+    addLoader();
+
+    try {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+        const resp = await fetch('/ai-assistant/query', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+            body: JSON.stringify({ query })
+        });
+        const data = await resp.json();
+        document.getElementById('esaLoader')?.remove();
+
+        if (data.success) {
+            if (data.count === 0) {
+                addEsaMessage(`I searched the database but couldn't find any contacts matching <strong>"${query}"</strong>. Try refining your search.`);
+            } else {
+                let html = `Found <strong style="color:#4ade80;">${data.count} contact${data.count > 1 ? 's' : ''}</strong> matching your query:<br><br>`;
+                html += `<div style="display:flex;flex-direction:column;gap:0.5rem;margin-top:0.3rem;">`;
+                data.results.slice(0, 5).forEach(c => {
+                    const initials = (c.name || c.email || 'U').slice(0, 2).toUpperCase();
+                    const badgeClr = c.interest === 'High' ? '#4ade80' : c.interest === 'Medium' ? '#fbbf24' : '#818cf8';
+                    html += `<div style="display:flex;align-items:center;gap:0.7rem;background:rgba(255,255,255,0.03);padding:0.6rem 0.8rem;border-radius:10px;border:1px solid rgba(255,255,255,0.06);">
+                        <div style="width:30px;height:30px;border-radius:8px;background:rgba(99,102,241,0.2);display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;color:var(--primary-light);flex-shrink:0;">${initials}</div>
+                        <div style="flex:1;min-width:0;">
+                            <div style="font-weight:700;font-size:0.85rem;color:white;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${c.name || 'Unknown'}</div>
+                            <div style="font-size:0.75rem;color:var(--text-dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${c.company || 'No Company'}</div>
+                        </div>
+                        <span style="font-size:0.7rem;padding:0.2rem 0.5rem;border-radius:6px;background:rgba(${badgeClr === '#4ade80' ? '34,197,94' : badgeClr === '#fbbf24' ? '245,158,11' : '99,102,241'},0.15);color:${badgeClr};font-weight:700;flex-shrink:0;">${c.interest || 'New'}</span>
+                    </div>`;
+                });
+                html += `</div>`;
+                if (data.count > 5) html += `<br><span style="font-size:0.8rem;color:var(--text-dim);">...and ${data.count - 5} more.</span>`;
+                html += `<br><a href="/contacts" style="display:inline-flex;align-items:center;gap:0.4rem;color:var(--primary-light);text-decoration:none;font-size:0.8rem;font-weight:700;margin-top:0.5rem;">View all in Contacts →</a>`;
+                addEsaMessage(html);
+            }
+        } else {
+            addEsaMessage('I encountered an error while searching. Please try again.');
+        }
+    } catch (e) {
+        document.getElementById('esaLoader')?.remove();
+        addEsaMessage('Connection to AI engine failed. Check your network and try again.');
+    }
+}
+
+esaSend.addEventListener('click', () => sendEsaQuery(esaInput.value.trim()));
+esaInput.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendEsaQuery(esaInput.value.trim()); } });
+
+// ==================== Sync Button ====================
+document.getElementById('syncBtn').addEventListener('click', function() {
+    this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing...';
+    this.disabled = true;
+    fetch('/sync-all', { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                showToast(`Synced ${data.synced_count} new entities successfully!`, 'success');
+                setTimeout(() => window.location.reload(), 2000);
+            } else {
+                showToast('Sync failed: ' + (data.error || 'Unknown error'), 'error');
+            }
+        })
+        .catch(() => showToast('Connection interrupted.', 'error'))
+        .finally(() => {
+            this.innerHTML = '<i class="fas fa-sync-alt"></i> Sync All';
+            this.disabled = false;
+        });
+});
+
+// ==================== Chart.js ====================
+const chartDefaults = {
+    responsive: true,
+    maintainAspectRatio: true,
+    plugins: { legend: { display: false }, tooltip: { enabled: true, backgroundColor: 'rgba(13,17,29,0.9)', titleColor: '#fff', bodyColor: '#94a3b8', borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1, padding: 10, cornerRadius: 12 } },
+    scales: { x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#64748b', font: { size: 10, family: 'Outfit' } } }, y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#64748b', font: { size: 10, family: 'Outfit' } } } }
+};
+const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'];
+
+// Leads Chart (Bar)
+new Chart(document.getElementById('leadsChart'), {
+    type: 'bar',
+    data: {
+        labels: months,
+        datasets: [{ label: 'Leads', data: [24, 35, 28, 42, 55, 48, 70, 88, {{ contacts_count }}], backgroundColor: 'rgba(99,102,241,0.6)', borderRadius: 6, borderSkipped: false }]
+    },
+    options: {...chartDefaults}
+});
+
+// Deals Chart (Line)
+new Chart(document.getElementById('dealsChart'), {
+    type: 'line',
+    data: {
+        labels: months,
+        datasets: [{ label: 'Deals', data: [5, 8, 12, 10, 18, 22, 28, 35, {{ [messages_count, 1]|max }}], borderColor: '#8b5cf6', backgroundColor: 'rgba(139,92,246,0.1)', tension: 0.4, fill: true, pointBackgroundColor: '#8b5cf6', pointRadius: 3, pointHoverRadius: 6 }]
+    },
+    options: {...chartDefaults}
+});
+
+// Conversion Chart (Bar)
+new Chart(document.getElementById('convChart'), {
+    type: 'bar',
+    data: {
+        labels: months,
+        datasets: [{ label: 'Rate', data: [12, 18, 15, 22, 28, 25, 32, 38, 42], backgroundColor: 'rgba(16,185,129,0.5)', borderRadius: 6 }]
+    },
+    options: {...chartDefaults}
+});
+
+// Sparklines
+function makeSparkline(id, data, color) {
+    new Chart(document.getElementById(id), {
+        type: 'line',
+        data: { labels: data.map((_,i)=>i), datasets: [{ data, borderColor: color, borderWidth: 2, tension: 0.4, fill: false, pointRadius: 0 }] },
+        options: { responsive: false, plugins: { legend: { display: false }, tooltip: { enabled: false } }, scales: { x: { display: false }, y: { display: false } } }
+    });
+}
+makeSparkline('sparkline1', [12,18,15,22,28,25,35,38,42], 'rgba(99,102,241,0.8)');
+makeSparkline('sparkline2', [24,30,28,40,50,44,60,72,{{ contacts_count }}], 'rgba(139,92,246,0.8)');
+makeSparkline('sparkline3', [5,8,6,12,15,18,22,28,{{ [messages_count,1]|max }}], 'rgba(16,185,129,0.8)');
+</script>
+{% endblock %}

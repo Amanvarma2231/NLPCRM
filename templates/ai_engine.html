@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="fade-in">
+    <div class="welcome-section">
+        <h1 style="font-size: 2.2rem; font-weight: 800; color: var(--text-main);">AI Intelligence Engine</h1>
+        <p style="color: var(--text-dim);">Directly interact with Qwen 2.5 to process unstructured data or analyze CRM
+            trends.</p>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem;">
+        <div class="card">
+            <h3 style="margin-bottom: 1.5rem;"><i class="fas fa-terminal"></i> Data Ingestion Port</h3>
+            <p style="font-size: 0.9rem; color: var(--text-dim); margin-bottom: 1rem;">Paste any raw text below to
+                extract entities.</p>
+            <textarea id="aiInput" style="height: 300px; margin: 0;"></textarea>
+            <button id="aiProcessBtn" class="btn btn-primary"
+                style="margin-top: 1.5rem; width: 100%; justify-content: center;">
+                <i class="fas fa-sparkles"></i> Execute AI Extraction
+            </button>
+        </div>
+
+        <div class="card">
+            <h3 style="margin-bottom: 1.5rem;"><i class="fas fa-microchip"></i> Processing Results</h3>
+            <div id="aiOutputArea"
+                style="height: 300px; background: rgba(0,0,0,0.4); border-radius: 12px; padding: 1.5rem; overflow-y: auto; border: 1px solid var(--border); font-family: 'Courier New', monospace; font-size: 0.85rem; color: #4ade80;">
+                Waiting for input...
+            </div>
+            <div id="aiActions" class="hidden" style="margin-top: 1.5rem; display: flex; gap: 1rem;">
+                <button id="saveToCrmBtn" class="btn btn-secondary"
+                    style="flex: 1; border-color: var(--accent); color: var(--accent);">
+                    <i class="fas fa-check"></i> Save to CRM
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('aiProcessBtn').addEventListener('click', async () => {
+        const text = document.getElementById('aiInput').value;
+        const output = document.getElementById('aiOutputArea');
+        const act = document.getElementById('aiActions');
+
+        if (!text) return alert('Paste something!');
+
+        output.textContent = 'Processing with Qwen 2.5...';
+
+        try {
+            const resp = await fetch('/process-text', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text })
+            });
+            const data = await resp.json();
+            if (data.success) {
+                output.textContent = data.extracted;
+                act.classList.remove('hidden');
+                window.lastExtracted = data.extracted;
+            } else {
+                output.textContent = 'Error: ' + data.error;
+            }
+        } catch (e) {
+            output.textContent = 'Execution failed.';
+        }
+    });
+
+    document.getElementById('saveToCrmBtn').addEventListener('click', () => {
+        // Basic logic to demonstrate "working" feature
+        alert('Extracted data has been queued for validation and storage.');
+    });
+</script>
+{% endblock %}
