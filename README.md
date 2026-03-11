@@ -1,7 +1,7 @@
-<<<<<<< HEAD
+ HEAD
 # 🚀 NLPCRM: Next-Gen AI-Powered Customer Intelligence
 
-![Banner](static/images/banner.png)
+(static/images/banner.png)
 
 Welcome to **NLPCRM** – the intelligent Customer Relationship Management system that transforms unstructured conversations into actionable business intelligence. 
 
