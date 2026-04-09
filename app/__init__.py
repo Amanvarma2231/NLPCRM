@@ -26,6 +26,17 @@ def create_app():
     # Initialize CSRF Protection
     csrf.init_app(app)
     
+    # Exempt webhook routes from CSRF
+    @app.after_request
+    def exempt_webhooks(response):
+        return response
+    
+    with app.app_context():
+        from app.routes.main import zoom_webhook, whatsapp_webhook, teams_webhook
+        csrf.exempt(zoom_webhook)
+        csrf.exempt(whatsapp_webhook)
+        csrf.exempt(teams_webhook)
+    
     # Content Security Policy for Talisman
     csp = {
         'default-src': [
@@ -39,20 +50,28 @@ def create_app():
             '\'self\'',
             '\'unsafe-inline\'',
             'https://fonts.googleapis.com',
-            'https://cdnjs.cloudflare.com'
+            'https://cdnjs.cloudflare.com',
+            'https://cdn.jsdelivr.net'
         ],
         'font-src': [
             '\'self\'',
             'https://fonts.gstatic.com',
-            'https://cdnjs.cloudflare.com'
+            'https://cdnjs.cloudflare.com',
+            'https://cdn.jsdelivr.net'
+        ],
+        'img-src': [
+            '\'self\'',
+            'data:',
+            'https://ui-avatars.com'
         ],
         'script-src': [
             '\'self\'',
             '\'unsafe-inline\'',
-            'https://cdnjs.cloudflare.com'
+            'https://cdnjs.cloudflare.com',
+            'https://cdn.jsdelivr.net'
         ]
     }
-    Talisman(app, content_security_policy=csp, force_https=False) # force_https=True in real prod
+    Talisman(app, content_security_policy=csp, force_https=False)
 
     # 2. Register Blueprints
     app.register_blueprint(main_bp)

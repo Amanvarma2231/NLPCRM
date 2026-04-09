@@ -2,34 +2,61 @@
 
 {% block content %}
 <div class="fade-in">
-    <div class="welcome-section">
-        <h1 style="font-size: 2.2rem; font-weight: 800; color: var(--text-main);">AI Intelligence Engine</h1>
-        <p style="color: var(--text-dim);">Directly interact with Qwen 2.5 to process unstructured data or analyze CRM
-            trends.</p>
+    <!-- Premium Intelligence Hub Header -->
+    <div class="frosted-glass" style="margin-bottom: 3rem; padding: 2.5rem; border-radius: 24px; border: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <div style="font-size: 0.75rem; font-weight: 900; color: #10b981; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 0.5rem;">Neural Extraction Layer</div>
+            <h1 style="font-size: 2.8rem; font-weight: 900; letter-spacing: -0.04em; color: #fff; margin: 0;">Neural <span style="font-weight: 400; color: var(--text-dim);">Engine</span></h1>
+            <p style="color: var(--text-muted); margin-top: 0.5rem; font-size: 1rem;">Directly process unstructured communication streams through high-fidelity AI models.</p>
+        </div>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <div style="font-size: 0.8rem; font-weight: 900; color: #10b981; text-transform: uppercase; letter-spacing: 0.05em;"><span class="status-dot online" style="background: #10b981; box-shadow: 0 0 10px #10b981;"></span> Mistral-AI Online</div>
+        </div>
     </div>
 
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem;">
-        <div class="card">
-            <h3 style="margin-bottom: 1.5rem;"><i class="fas fa-terminal"></i> Data Ingestion Port</h3>
-            <p style="font-size: 0.9rem; color: var(--text-dim); margin-bottom: 1rem;">Paste any raw text below to
-                extract entities.</p>
-            <textarea id="aiInput" style="height: 300px; margin: 0;"></textarea>
-            <button id="aiProcessBtn" class="btn btn-primary"
-                style="margin-top: 1.5rem; width: 100%; justify-content: center;">
-                <i class="fas fa-sparkles"></i> Execute AI Extraction
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem;">
+        <!-- Data Input Console -->
+        <div class="card frosted-glass" style="border-radius: 24px; padding: 2.5rem; border: 1px solid var(--glass-border);">
+            <div style="display: flex; align-items: center; gap: 0.8rem; margin-bottom: 1.5rem;">
+                <div style="width: 32px; height: 32px; background: var(--primary-gradient); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-terminal" style="color: white; font-size: 0.9rem;"></i>
+                </div>
+                <h3 style="font-size: 1rem; font-weight: 900; color: #fff; text-transform: uppercase; margin: 0; letter-spacing: 0.1em;">Neural Input Stream</h3>
+            </div>
+            <p style="font-size: 0.95rem; color: var(--text-dim); margin-bottom: 1.5rem; line-height: 1.6;">Paste raw communication threads (Email, WhatsApp, Transcripts) for neural profile extraction.</p>
+            <textarea id="aiInput" placeholder="Intelligence stream data..." style="height: 400px; background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); border-radius: 16px; color: white; padding: 1.5rem; width: 100%; font-family: 'Inter', sans-serif; resize: none; font-size: 0.95rem; line-height: 1.6; outline: none; transition: border-color 0.2s;"></textarea>
+            <button id="aiProcessBtn" class="btn btn-primary" style="margin-top: 2rem; width: 100%; justify-content: center; background: var(--primary-gradient); border: none; font-weight: 900; height: 56px; border-radius: 14px; font-size: 1rem; box-shadow: 0 10px 30px rgba(99, 102, 241, 0.2);">
+                <i class="fas fa-microchip" style="margin-right: 0.6rem;"></i> Execute Extraction Pipeline
             </button>
         </div>
 
-        <div class="card">
-            <h3 style="margin-bottom: 1.5rem;"><i class="fas fa-microchip"></i> Processing Results</h3>
-            <div id="aiOutputArea"
-                style="height: 300px; background: rgba(0,0,0,0.4); border-radius: 12px; padding: 1.5rem; overflow-y: auto; border: 1px solid var(--border); font-family: 'Courier New', monospace; font-size: 0.85rem; color: #4ade80;">
-                Waiting for input...
+        <!-- Intelligence Output -->
+        <div class="card frosted-glass" style="border-radius: 24px; padding: 2.5rem; border: 1px solid var(--glass-border);">
+            <div style="display: flex; align-items: center; gap: 0.8rem; margin-bottom: 1.5rem;">
+                <div style="width: 32px; height: 32px; background: var(--success-gradient); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-robot" style="color: white; font-size: 0.9rem;"></i>
+                </div>
+                <h3 style="font-size: 1rem; font-weight: 900; color: #fff; text-transform: uppercase; margin: 0; letter-spacing: 0.1em;">Synthesis Report</h3>
             </div>
-            <div id="aiActions" class="hidden" style="margin-top: 1.5rem; display: flex; gap: 1rem;">
-                <button id="saveToCrmBtn" class="btn btn-secondary"
-                    style="flex: 1; border-color: var(--accent); color: var(--accent);">
-                    <i class="fas fa-check"></i> Save to CRM
+            
+            <div id="aiSummaryArea" class="hidden" style="margin-bottom: 1.5rem; padding: 1.8rem; background: rgba(255,255,255,0.03); border-radius: 16px; border: 1px solid var(--glass-border);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <div id="sentimentBadge" style="padding: 0.5rem 1.2rem; border-radius: 10px; font-size: 0.75rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em;">Sentiment Matrix</div>
+                    <div id="importanceBadge" style="font-size: 1rem; font-weight: 900; color: #fff; letter-spacing: -0.02em;">Impact 0/10</div>
+                </div>
+                <p id="msgSummary" style="font-size: 1rem; line-height: 1.7; color: var(--text-dim); margin: 0; font-style: italic;"></p>
+            </div>
+
+            <div id="aiOutputArea" style="height: 280px; background: rgba(0,0,0,0.4); border-radius: 16px; padding: 1.5rem; overflow-y: auto; border: 1px solid var(--glass-border); font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; color: #34d399; line-height: 1.6;">
+                // Neural engine standing by for stream...
+            </div>
+            
+            <div id="aiActions" class="hidden" style="margin-top: 2rem; display: grid; grid-template-columns: 2fr 1fr; gap: 1.25rem;">
+                <button id="saveToCrmBtn" class="btn btn-primary" style="background: var(--success-gradient); border: none; font-weight: 900; height: 56px; border-radius: 14px; font-size: 0.95rem;">
+                    <i class="fas fa-cloud-upload-alt" style="margin-right: 0.6rem;"></i> Commit Intelligence
+                </button>
+                <button id="clearBtn" class="btn btn-secondary frosted-glass" style="color: white; border-radius: 14px; font-weight: 800;">
+                    Discard
                 </button>
             </div>
         </div>
@@ -37,37 +64,98 @@
 </div>
 
 <script>
-    document.getElementById('aiProcessBtn').addEventListener('click', async () => {
-        const text = document.getElementById('aiInput').value;
-        const output = document.getElementById('aiOutputArea');
-        const act = document.getElementById('aiActions');
+    const processBtn = document.getElementById('aiProcessBtn');
+    const input = document.getElementById('aiInput');
+    const output = document.getElementById('aiOutputArea');
+    const sumArea = document.getElementById('aiSummaryArea');
+    const actions = document.getElementById('aiActions');
 
-        if (!text) return alert('Paste something!');
+    processBtn.addEventListener('click', async () => {
+        const text = input.value;
+        if (!text) return alert('Input required.');
 
-        output.textContent = 'Processing with Qwen 2.5...';
+        processBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
+        processBtn.disabled = true;
+        output.textContent = 'Decrypting communication stream...';
 
         try {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
             const resp = await fetch('/process-text', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
                 body: JSON.stringify({ text })
             });
             const data = await resp.json();
+            
             if (data.success) {
-                output.textContent = data.extracted;
-                act.classList.remove('hidden');
-                window.lastExtracted = data.extracted;
+                // Parse the AI output if it's a string JSON
+                let result = {};
+                try {
+                    result = typeof data.extracted === 'string' ? JSON.parse(data.extracted) : data.extracted;
+                } catch(e) {
+                    output.textContent = data.extracted;
+                    return;
+                }
+
+                output.textContent = JSON.stringify(result, null, 4);
+                
+                // Show Summary
+                document.getElementById('msgSummary').textContent = result.summary || 'No summary generated.';
+                
+                // Set Sentiment
+                const sent = result.sentiment || 'Neutral';
+                const sBadge = document.getElementById('sentimentBadge');
+                sBadge.textContent = sent;
+                if(sent === 'Positive') sBadge.style.cssText = "padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; background: rgba(0, 255, 136, 0.1); color: #00ff88; border: 1px solid rgba(0, 255, 136, 0.2);";
+                else if(sent === 'Negative') sBadge.style.cssText = "padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; background: rgba(255, 77, 77, 0.1); color: #ff4d4d; border: 1px solid rgba(255, 77, 77, 0.2);";
+                else sBadge.style.cssText = "padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; background: rgba(255,255,255,0.05); color: #94a3b8; border: 1px solid rgba(255,255,255,0.1);";
+
+                // Set Importance
+                document.getElementById('importanceBadge').textContent = `${result.importance_score || 0}/10 Importance`;
+                
+                sumArea.classList.remove('hidden');
+                actions.classList.remove('hidden');
+                window.lastResult = result;
+
             } else {
-                output.textContent = 'Error: ' + data.error;
+                output.textContent = 'Analysis Failed: ' + data.error;
             }
         } catch (e) {
-            output.textContent = 'Execution failed.';
+            output.textContent = 'System Crash: Connection error.';
+        } finally {
+            processBtn.innerHTML = '<i class="fas fa-sparkles"></i> Run Intelligence Scan';
+            processBtn.disabled = false;
         }
     });
 
-    document.getElementById('saveToCrmBtn').addEventListener('click', () => {
-        // Basic logic to demonstrate "working" feature
-        alert('Extracted data has been queued for validation and storage.');
+    document.getElementById('saveToCrmBtn').addEventListener('click', async () => {
+        if(!window.lastResult) return;
+        const btn = document.getElementById('saveToCrmBtn');
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Committing...';
+        btn.disabled = true;
+
+        try {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+            const resp = await fetch('/contacts/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRFToken': csrfToken },
+                body: new URLSearchParams(window.lastResult)
+            });
+            alert('Lead committed to CRM successfully!');
+            window.location.href = '/contacts';
+        } catch(e) {
+            alert('Failed to save.');
+        } finally {
+            btn.innerHTML = '<i class="fas fa-check"></i> Commit to CRM';
+            btn.disabled = false;
+        }
+    });
+
+    document.getElementById('clearBtn').addEventListener('click', () => {
+        input.value = '';
+        output.textContent = 'Waiting for input packet...';
+        sumArea.classList.add('hidden');
+        actions.classList.add('hidden');
     });
 </script>
-{% endblock %}
+{% endblock %}

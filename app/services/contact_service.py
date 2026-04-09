@@ -82,19 +82,26 @@ class ContactService:
         primary_email = contact_data.get("email", "").strip()
         primary_phone = contact_data.get("phone", "").strip()
         
-        known = {"name", "company", "job_title", "source", "interest", "email", "phone", "email2", "social_media"}
+        sentiment = contact_data.get("sentiment", "Neutral")
+        importance_score = contact_data.get("importance_score", 0)
+        urgency = contact_data.get("urgency", "Low")
+        summary = contact_data.get("summary", "")
+        
+        known = {"name", "company", "job_title", "source", "interest", "email", "phone", "email2", "social_media", "sentiment", "importance_score", "urgency", "summary"}
         extra = {k: v for k, v in contact_data.items() if k not in known}
         extra_json = json.dumps(extra) if extra else ""
 
-        # --- Smart Deduplication Logic ---
+        # --- Smart Deduplication & Merging Logic ---
         existing_id = None
         
+        # Check by Email
         if primary_email:
             cursor = self._execute("SELECT contact_id FROM contact_emails WHERE email = ?", (primary_email,))
-            if cursor and cursor.rowcount == -1: # SQLite rowcount is -1 for SELECT, use fetchone
+            if cursor:
                 row = cursor.fetchone()
                 if row: existing_id = row[0]
                 
+        # Check by Phone if Email didn't match
         if not existing_id and primary_phone:
             cursor = self._execute("SELECT contact_id FROM contact_phones WHERE phone = ?", (primary_phone,))
             if cursor:
@@ -102,38 +109,53 @@ class ContactService:
                 if row: existing_id = row[0]
                 
         if existing_id:
-            # Merge Logic: Update empty fields
-            logger.info(f"Duplicate found for {primary_email} / {primary_phone}. Merging into contact {existing_id}.")
+            logger.info(f"Existing entity found (ID: {existing_id}). Merging incoming intelligence from {source}.")
             
-            # Fetch existing to avoid overwriting good data with empty strings
-            cursor = self._execute("SELECT name, company, job_title, interest FROM contacts_v2 WHERE id = ?", (existing_id,))
+            cursor = self._execute("SELECT name, company, job_title, interest, sentiment, importance_score, urgency, summary, source FROM contacts_v2 WHERE id = ?", (existing_id,))
             if cursor:
-                ex_name, ex_comp, ex_job, ex_int = cursor.fetchone()
-                
-                upd_name = name if name and not ex_name else ex_name
-                upd_comp = company if company and not ex_comp else ex_comp
-                upd_job = job_title if job_title and not ex_job else ex_job
-                
-                # Update Interest only if it's better/changed (Simplistic check)
-                upd_int = interest if interest and interest != "New" else ex_int
-                
-                self._execute("""
-                    UPDATE contacts_v2 
-                    SET name=?, company=?, job_title=?, interest=?, updated_at=?, source=?
-                    WHERE id=?
-                """, (upd_name, upd_comp, upd_job, upd_int, now, source, existing_id))
-            
+                row = cursor.fetchone()
+                if row:
+                    ex_name, ex_comp, ex_job, ex_int, ex_sent, ex_imp, ex_urg, ex_sum, ex_src = row
+                    
+                    # Merge Strategy: Prefer new data if existing is empty
+                    upd_name = name if name and (not ex_name or len(ex_name) < 2) else ex_name
+                    upd_comp = company if company and (not ex_comp or len(ex_comp) < 2) else ex_comp
+                    upd_job = job_title if job_title and not ex_job else ex_job
+                    
+                    # Sentiment/Priority: Upgrade if new is more significant
+                    upd_sent = sentiment if sentiment and sentiment != "Neutral" else ex_sent
+                    upd_urg = urgency if urgency and urgency != "Low" else ex_urg
+                    
+                    try:
+                        new_score = float(importance_score or 0)
+                        old_score = float(ex_imp or 0)
+                        upd_imp = max(new_score, old_score)
+                    except: upd_imp = ex_imp
+                    
+                    # Summary: Append if different
+                    upd_sum = ex_sum
+                    if summary and summary not in (ex_sum or ""):
+                        upd_sum = f"{ex_sum}\n---\n{summary}" if ex_sum else summary
+                        
+                    # Source Tracking
+                    upd_src = ex_src
+                    if source and source not in (ex_src or ""):
+                        upd_src = f"{ex_src}, {source}" if ex_src else source
+                        
+                    self._execute("""
+                        UPDATE contacts_v2 
+                        SET name=?, company=?, job_title=?, updated_at=?, source=?, sentiment=?, importance_score=?, urgency=?, summary=?
+                        WHERE id=?
+                    """, (upd_name, upd_comp, upd_job, now, upd_src[:200] if upd_src else upd_src, upd_sent, upd_imp, upd_urg, (upd_sum or '')[:1000], existing_id))
             contact_id = existing_id
         else:
             # Insert New Contact
             res = self._execute("""
-                INSERT INTO contacts_v2 (name, company, job_title, source, interest, extra, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            """, (name, company, job_title, source, interest, extra_json, now, now))
-            
+                INSERT INTO contacts_v2 (name, company, job_title, source, interest, extra, created_at, updated_at, sentiment, importance_score, urgency, summary)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (name, company, job_title, source, interest, extra_json, now, now, sentiment, importance_score, urgency, summary))
             if not res: return False
             contact_id = res.lastrowid
-        contact_id = res.lastrowid
         
         # Emails
         if primary_email:
@@ -176,7 +198,7 @@ class ContactService:
     def get_contacts(self):
         """Retrieve all contacts mapped back to the structured format required by the UI"""
         cursor = self._execute("""
-            SELECT id, name, company, job_title, source, interest, created_at, updated_at
+            SELECT id, name, company, job_title, source, interest, created_at, updated_at, sentiment, importance_score, urgency, summary
             FROM contacts_v2
             ORDER BY datetime(created_at) DESC
         """)
@@ -184,7 +206,7 @@ class ContactService:
         
         results = []
         for row in cursor.fetchall():
-            c_id, name, company, job_title, source, interest, created_at, updated_at = row
+            c_id, name, company, job_title, source, interest, created_at, updated_at, sentiment, importance_score, urgency, summary = row
             
             # Fetch associative data
             emails_cur = self._execute("SELECT label, email, is_primary FROM contact_emails WHERE contact_id = ?", (c_id,))
@@ -211,7 +233,11 @@ class ContactService:
                 "email": primary_email,
                 "phone": primary_phone,
                 "email2": json.dumps(extra_emails),
-                "social_media": json.dumps(social_list)
+                "social_media": json.dumps(social_list),
+                "sentiment": sentiment,
+                "importance_score": importance_score,
+                "urgency": urgency,
+                "summary": summary
             })
         return results
 
@@ -233,5 +259,37 @@ class ContactService:
             INSERT INTO activities_v2 (contact_id, type, description, timestamp)
             VALUES (?, ?, ?, ?)
         """, (contact_id, activity_type, description, now))
+
+    def get_context_summary(self):
+        """Returns a string summary of all contacts for AI context."""
+        contacts = self.get_contacts()
+        if not contacts:
+            return "No contacts found in the database."
+        
+        total = len(contacts)
+        sentiment_counts = {"Positive": 0, "Negative": 0, "Neutral": 0}
+        interest_counts = {"High": 0, "Medium": 0, "Low": 0, "Support": 0, "New": 0}
+        companies = set()
+        
+        for c in contacts:
+            s = c.get('sentiment', 'Neutral')
+            if s in sentiment_counts: sentiment_counts[s] += 1
+            i = c.get('interest', 'New')
+            if i in interest_counts: interest_counts[i] += 1
+            if c.get('company'): companies.add(c.get('company'))
+            
+        summary = f"Total Leads: {total} in CRM.\n"
+        summary += f"Sentiment Profile: {sentiment_counts['Positive']} Positive, {sentiment_counts['Negative']} Negative, {sentiment_counts['Neutral']} Neutral.\n"
+        summary += f"Interest Profile: {interest_counts['High']} High, {interest_counts['Medium']} Medium, {interest_counts['Low']} Low.\n"
+        summary += f"Organizations Represented: {len(companies)} companies.\n"
+        
+        # Add snippets of top 5 high impact leads
+        high_impact = [c for c in contacts if float(c.get('importance_score') or 0) >= 8][:5]
+        if high_impact:
+            summary += "Top High Impact Leads:\n"
+            for c in high_impact:
+                summary += f"- {c.get('name')} ({c.get('company')}): Score {c.get('importance_score')}. Summary: {c.get('summary')}\n"
+        
+        return summary
 
 contact_service = ContactService()

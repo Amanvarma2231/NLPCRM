@@ -32,9 +32,13 @@ CRITICAL RULES:
    - "phone" (Primary phone number, or "" if missing)
    - "company" (Organization name, or "" if missing)
    - "job_title" (Their role, or "" if missing)
-   - "interest" (Must be exactly one of: "High", "Medium", "Low", "Support", or "New")
+   - "interest" (Must be: "High", "Medium", "Low", "Support", or "New")
+   - "sentiment" (Must be: "Positive", "Negative", or "Neutral")
+   - "importance_score" (Number from 0 to 10 based on business value)
+   - "urgency" (Must be: "High", "Medium", or "Low")
+   - "summary" (A 1-sentence summary of the message content)
 
-If a field is not found in the text, use an empty string "". Do not guess."""
+If a field is not found in the text, use an empty string "" or 0 for scores. Do not guess."""
 
     def query_model(self, prompt, source="Unknown"):
         if not HF_API_KEY:
@@ -50,7 +54,8 @@ If a field is not found in the text, use an empty string "". Do not guess."""
                 {"role": "system", "content": self.system_prompt},
                 {"role": "user", "content": context_prompt}
             ],
-            "parameters": {"max_tokens": 800, "temperature": 0.1, "top_p": 0.9}
+            "max_tokens": 800,
+            "temperature": 0.1
         }
         try:
             response = requests.post(self.api_url, headers=self.headers, json=payload, timeout=25)
@@ -75,16 +80,18 @@ If a field is not found in the text, use an empty string "". Do not guess."""
 Available keys for filtering:
 - interest: ['High', 'Medium', 'Low', 'Support', 'New']
 - source: ['Gmail', 'WhatsApp API', 'Manual']
+- sentiment: ['Positive', 'Negative', 'Neutral']
+- min_importance: number (0-10)
 - company: string
 - search_text: string (to search in name or job_title)
 
-Example Input: "Show me all high interest leads from WhatsApp"
-Example Output: {"interest": "High", "source": "WhatsApp API"}
+Example Input: "Show me all positive high interest leads from WhatsApp"
+Example Output: {"interest": "High", "source": "WhatsApp API", "sentiment": "Positive"}
 
-Example Input: "Find someone from Apex Logistics"
-Example Output: {"company": "Apex Logistics"}
+Example Input: "Find high impact people from Apex Logistics"
+Example Output: {"company": "Apex Logistics", "min_importance": 8}
 
-Output strictly a JSON object. No conversation."""
+Output strictly a JSON object. No conversation. Keep keys consistent with the list above. Always use standard sentiment labels. Always set min_importance if user mentions "high impact" or "important"."""
         
         try:
             payload = {
@@ -93,7 +100,8 @@ Output strictly a JSON object. No conversation."""
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_query}
                 ],
-                "parameters": {"max_tokens": 150, "temperature": 0.1}
+                "max_tokens": 150,
+                "temperature": 0.1
             }
             response = requests.post(self.api_url, headers=self.headers, json=payload, timeout=15)
             response.raise_for_status()
@@ -101,11 +109,72 @@ Output strictly a JSON object. No conversation."""
             result = response.json()
             if "choices" in result and len(result["choices"]) > 0:
                 raw_text = result["choices"][0]["message"]["content"].strip()
+                # Use the clean helper for robust parsing
                 return self._clean_json_output(raw_text)
             return "{}"
         except Exception as e:
             logger.error(f"AI Query error: {e}")
             return "{}"
+
+    def generate_outreach_suggestion(self, contact):
+        """Generates a professional, personalized follow-up draft."""
+        prompt = f"""Generate a short, professional outreach template for a lead.
+Context:
+- Name: {contact.get('name')}
+- Company: {contact.get('company')}
+- Interest: {contact.get('interest')}
+- AI Summary of last interaction: {contact.get('summary')}
+- Sentiment: {contact.get('sentiment')}
+
+The tone should be professional and helpful. Keep it under 100 words.
+Output only the suggestion text, no introduction."""
+        
+        payload = {
+            "model": HF_MODEL,
+            "messages": [
+                {"role": "system", "content": "You are a senior sales copywriter."},
+                {"role": "user", "content": prompt}
+            ],
+            "max_tokens": 300,
+            "temperature": 0.7
+        }
+        try:
+            response = requests.post(self.api_url, headers=self.headers, json=payload, timeout=20)
+            response.raise_for_status()
+            result = response.json()
+            if "choices" in result and len(result["choices"]) > 0:
+                return result["choices"][0]["message"]["content"].strip()
+            return "Could not generate suggestion."
+        except Exception:
+            return "AI outreach service temporarily unavailable."
+
+    def crm_chat_analyst(self, query, context_summary):
+        """Answers general questions about the CRM data."""
+        prompt = f"""User Question: {query}
+        
+CRM Data Context:
+{context_summary}
+
+Answer the user concisely as a CRM consultant. Use facts from the context. If you can't answer, be honest."""
+        
+        payload = {
+            "model": HF_MODEL,
+            "messages": [
+                {"role": "system", "content": "You are a professional CRM Data Analyst."},
+                {"role": "user", "content": prompt}
+            ],
+            "max_tokens": 400,
+            "temperature": 0.2
+        }
+        try:
+            response = requests.post(self.api_url, headers=self.headers, json=payload, timeout=25)
+            response.raise_for_status()
+            result = response.json()
+            if "choices" in result and len(result["choices"]) > 0:
+                return result["choices"][0]["message"]["content"].strip()
+            return "I need more data to answer that."
+        except Exception:
+            return "Analyst service is sleeping right now."
 
     def _clean_json_output(self, raw_text):
         """Robustly extracts JSON even if the AI hallucinates markdown wrappers."""

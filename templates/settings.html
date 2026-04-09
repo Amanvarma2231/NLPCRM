@@ -188,6 +188,13 @@
                         </div>
                     </div>
                     <div class="card-body">
+                        <div class="form-group" style="margin-bottom: 2rem;">
+                            <label>Display Name</label>
+                            <input type="text" name="USER_NAME" placeholder="Aman Varma" class="settings-input"
+                                value="{{ settings.get('USER_NAME', 'Aman Varma') }}">
+                            <small class="field-hint">This name will appear in the sidebar and communication outgoing headers.</small>
+                        </div>
+
                         <input type="hidden" name="USER_EMAILS" id="userEmailsInput"
                             value="{{ settings.get('USER_EMAILS', '[]') }}">
                         <input type="hidden" name="USER_SOCIALS" id="userSocialsInput"
@@ -249,11 +256,11 @@
         <div class="settings-footer card glass">
             <div>
                 <span class="footer-title">Configuration Status</span>
-                <p class="footer-desc">Make changes to activate the save button.</p>
+                <p class="footer-desc">Review your changes carefully before deploying to production.</p>
             </div>
             <button type="submit" class="btn btn-primary btn-save" id="saveButton"
-                style="padding: 0.8rem 2.5rem; font-size: 1rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);">
-                <i class="fas fa-save"></i> Save Configuration
+                style="padding: 0.8rem 2.5rem; font-size: 1rem; font-weight: 800; display: flex; align-items: center; gap: 0.6rem; background: var(--primary); color: var(--bg-dark); border: none; box-shadow: 0 4px 20px rgba(204, 255, 0, 0.3);">
+                <i class="fas fa-save"></i> UPDATE SYSTEM
             </button>
         </div>
     </form>

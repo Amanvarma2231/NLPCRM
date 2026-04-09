@@ -1,4 +1,4 @@
- HEAD
+
 # 🚀 NLPCRM: Next-Gen AI-Powered Customer Intelligence
 
 (static/images/banner.png)
@@ -77,6 +77,3 @@ python run.py
 
 ---
 *Built with ❤️ utilizing Flask, PWA standards, and cutting-edge AI technologies.*
-=======
-# NLPCRM
->>>>>>> 99ead35687f38024721db18169b0030ced7d906a

@@ -1,101 +1,99 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="contacts-wrapper fade-in">
-    <!-- Left Sidebar -->
-    <div class="contacts-sidebar">
-        <button class="btn btn-primary" onclick="openModal()" style="width: 100%; justify-content: center; box-shadow: 0 10px 20px rgba(99, 102, 241, 0.2);">
-            <i class="fas fa-plus"></i> Add New Contact
+<div class="contacts-wrapper fade-in" style="display: flex; gap: 2.5rem;">
+    <!-- Premium Navigation Sidebar -->
+    <div class="contacts-sidebar" style="width: 280px; flex-shrink: 0; display: flex; flex-direction: column; gap: 2rem;">
+        <button class="btn btn-primary" onclick="openModal()" style="width: 100%; justify-content: center; background: var(--primary-gradient); border: none; border-radius: 12px; padding: 1rem; font-weight: 800; display: flex; align-items: center; gap: 0.6rem; box-shadow: 0 10px 20px rgba(99, 102, 241, 0.2);">
+            <i class="fas fa-plus"></i> New Intelligence Lead
         </button>
 
-        <div class="filter-group">
-            <h4>Intelligence Segments</h4>
-            <div class="filter-item active" data-filter="all" onclick="setFilter('all', this)">
-                <i class="fas fa-users" style="color: var(--primary-light);"></i> All Entities
+        <div class="frosted-glass" style="padding: 1.5rem; border-radius: 20px;">
+            <div style="font-size: 0.7rem; color: var(--text-muted); font-weight: 900; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 1.5rem;">Intelligence Filters</div>
+            <div class="filter-item active" onclick="setFilter('all', this)" style="display: flex; align-items: center; gap: 0.8rem; padding: 0.8rem 1rem; border-radius: 10px; color: #fff; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.2);">
+                <i class="fas fa-layer-group" style="width: 16px; color: var(--primary);"></i> Master Directory
             </div>
-            <div class="filter-item" data-filter="High" onclick="setFilter('High', this)">
-                <i class="fas fa-fire-alt" style="color: #ef4444;"></i> Hot Leads
+            <div class="filter-item" onclick="setFilter('Positive', this)" style="display: flex; align-items: center; gap: 0.8rem; padding: 0.8rem 1rem; border-radius: 10px; color: var(--text-dim); font-size: 0.9rem; cursor: pointer; transition: all 0.2s; margin-top: 0.5rem;">
+                <i class="fas fa-face-smile" style="width: 16px; color: var(--success);"></i> High Sentiment
             </div>
-            <div class="filter-item" data-filter="New" onclick="setFilter('New', this)">
-                <i class="fas fa-star" style="color: #fbbf24;"></i> Recently Added
+            <div class="filter-item" onclick="setFilter('High', this)" style="display: flex; align-items: center; gap: 0.8rem; padding: 0.8rem 1rem; border-radius: 10px; color: var(--text-dim); font-size: 0.9rem; cursor: pointer; transition: all 0.2s; margin-top: 0.5rem;">
+                <i class="fas fa-fire" style="width: 16px; color: var(--accent);"></i> Hot Opportunities
             </div>
         </div>
 
-        <div class="filter-group">
-            <h4>Quick Stats</h4>
-            <div style="padding: 1.2rem; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
-                <div style="font-size: 2.2rem; font-weight: 800; color: var(--primary-light); line-height: 1;">{{ contacts|length }}</div>
-                <div style="font-size: 0.8rem; color: var(--text-dim); text-transform: uppercase; margin-top: 0.5rem; letter-spacing: 0.05em;">Total Contacts</div>
-            </div>
+        <div class="frosted-glass" style="padding: 1.8rem; border-radius: 20px; border-top: 4px solid var(--primary);">
+            <div style="font-size: 2.2rem; font-weight: 900; color: #fff; line-height: 1; letter-spacing: -0.03em;">{{ contacts|length }}</div>
+            <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; margin-top: 0.5rem; font-weight: 800; letter-spacing: 0.05em;">Stored Intelligence</div>
         </div>
     </div>
 
     <!-- Main Table Area -->
-    <div class="contacts-main">
-        <div class="table-header-bar">
+    <div class="contacts-main" style="flex: 1; min-width: 0;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem;">
             <div>
-                <h3 style="margin: 0; font-size: 1.3rem; color: var(--text-main); font-weight: 700;">Contact Directory</h3>
-                <p style="margin: 0; font-size: 0.85rem; color: var(--text-dim); margin-top: 0.2rem;" id="showingCount">Showing all contacts</p>
+                <h2 style="font-size: 2rem; font-weight: 900; color: #fff; margin:0; letter-spacing: -0.02em;">Intelligence Directory</h2>
+                <p style="color: var(--text-muted); font-size: 1rem; margin-top: 0.3rem;">Detailed neural profiles and cross-channel sentiment analysis.</p>
             </div>
-            <div style="display: flex; gap: 1rem; align-items: center;">
-                <div style="position: relative; width: 320px;">
-                    <i class="fas fa-search" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.9rem;"></i>
-                    <input type="text" id="contactSearch" placeholder="Search names, emails, companies..." 
-                        style="width: 100%; padding: 0.75rem 1rem 0.75rem 2.8rem; background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 12px; color: white; font-size: 0.9rem; transition: all 0.2s;"
-                        onkeyup="filterContacts()" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='var(--border)'">
-                </div>
+            <div style="position: relative; width: 320px;">
+                <i class="fas fa-search" style="position: absolute; left: 1.25rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 0.9rem;"></i>
+                <input type="text" id="contactSearch" placeholder="Search lead intelligence..." 
+                    style="width: 100%; padding: 0.8rem 1rem 0.8rem 3rem; background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); border-radius: 12px; color: white; font-size: 0.9rem; outline: none; transition: border-color 0.2s;"
+                    onkeyup="filterContacts()">
             </div>
         </div>
 
-        <div class="table-wrapper-scroll">
-            <table style="width: 100%; border-collapse: separate; border-spacing: 0;">
-                <thead style="position: sticky; top: 0; background: rgba(30, 41, 59, 0.95); backdrop-filter: blur(10px); z-index: 5;">
-                    <tr>
-                        <th style="padding: 1.2rem 2rem; width: 50px; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                            <div class="custom-checkbox-wrapper">
-                                <input type="checkbox" class="custom-checkbox" id="selectAllCheckbox" onclick="toggleAll(this)">
-                            </div>
-                        </th>
-                        <th style="padding: 1.2rem 1rem; text-align: left; font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em; border-bottom: 1px solid rgba(255,255,255,0.05);">Identity</th>
-                        <th style="padding: 1.2rem 1rem; text-align: left; font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em; border-bottom: 1px solid rgba(255,255,255,0.05);">Company</th>
-                        <th style="padding: 1.2rem 1rem; text-align: left; font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em; border-bottom: 1px solid rgba(255,255,255,0.05);">Priority</th>
-                        <th style="padding: 1.2rem 2rem; text-align: right; font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em; border-bottom: 1px solid rgba(255,255,255,0.05);">Actions</th>
+        <div class="frosted-glass" style="border-radius: 24px; overflow: hidden; border: 1px solid var(--glass-border);">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="border-bottom: 1px solid var(--glass-border); background: rgba(255,255,255,0.02);">
+                        <th style="padding: 1.5rem 1.8rem; text-align: left; font-size: 0.75rem; font-weight: 900; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Lead Identity</th>
+                        <th style="padding: 1.5rem 1.8rem; text-align: left; font-size: 0.75rem; font-weight: 900; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Sentiment Matrix</th>
+                        <th style="padding: 1.5rem 1.8rem; text-align: left; font-size: 0.75rem; font-weight: 900; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Neural Impact</th>
+                        <th style="padding: 1.5rem 1.8rem; text-align: right; font-size: 0.75rem; font-weight: 900; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="contactsTableBody">
                     {% if contacts %}
                     {% for contact in contacts %}
-                    <tr class="contact-row" data-interest="{{ contact.interest or 'New' }}" style="transition: all 0.2s ease;">
-                        <td style="padding: 1.2rem 2rem; border-bottom: 1px solid rgba(255,255,255,0.02);">
-                            <div class="custom-checkbox-wrapper">
-                                <input type="checkbox" class="custom-checkbox row-checkbox" value="{{ contact.email }}" onclick="updateSelection()">
-                            </div>
-                        </td>
-                        <td style="padding: 1.2rem 1rem; border-bottom: 1px solid rgba(255,255,255,0.02); cursor: pointer;" onclick="openDrawer(this)" data-contact="{{ contact|tojson|forceescape }}">
-                            <div class="user-cell" style="display: flex; align-items: center; gap: 1rem;">
-                                <div style="position: relative;">
-                                    <img src="https://ui-avatars.com/api/?name={{ (contact.name or contact.email or 'U')|urlencode }}&background=6366f1&color=fff&bold=true" style="width: 42px; height: 42px; border-radius: 12px; border: 2px solid rgba(99, 102, 241, 0.2);">
+                    <tr class="contact-row" style="border-bottom: 1px solid var(--border); transition: background 0.1s; cursor: pointer;" onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background='transparent'" onclick='viewContact({{ contact|tojson|safe }})'>
+                        <td style="padding: 1.25rem 1.5rem;">
+                            <div style="display: flex; align-items: center; gap: 0.8rem;">
+                                <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--text-dim);">
+                                    {{ contact.name[0] if contact.name else 'L' }}
                                 </div>
-                                <div>
-                                    <span style="font-weight: 600; font-size: 1rem; color: var(--text-main); display: block;" class="contact-name">{{ contact.name }}</span>
-                                    <span style="font-size: 0.8rem; color: var(--text-dim);" class="contact-email">{{ contact.email }}</span>
+                                <div style="display: flex; flex-direction: column;">
+                                    <span style="font-weight: 700; color: #fff; font-size: 0.95rem;">{{ contact.name or 'Unnamed Lead' }}</span>
+                                    <span style="font-size: 0.75rem; color: var(--text-muted);">{{ contact.source }} • {{ contact.email or 'No Email' }}</span>
                                 </div>
                             </div>
                         </td>
-                        <td style="padding: 1.2rem 1rem; border-bottom: 1px solid rgba(255,255,255,0.02); cursor: pointer;" onclick="openDrawer(this.previousElementSibling)">
-                            <div style="font-size: 0.9rem; color: var(--text-main);" class="contact-company">{{ contact.company or '—' }}</div>
+                        <td style="padding: 1.25rem 1.5rem;">
+                            <span style="font-size: 0.8rem; color: {% if contact.sentiment == 'Positive' %}var(--success){% elif contact.sentiment == 'Negative' %}var(--accent){% else %}var(--text-dim){% endif %}; font-weight: 700;">
+                                {{ contact.sentiment or 'Neutral' }}
+                            </span>
                         </td>
-                        <td style="padding: 1.2rem 1rem; border-bottom: 1px solid rgba(255,255,255,0.02); cursor: pointer;" onclick="openDrawer(this.previousElementSibling.previousElementSibling)">
-                            {% set interest = contact.interest or 'New' %}
-                            {% set badge_class = 'status-new' %}
-                            {% set icon = 'fa-star' %}
-                            {% if 'High' in interest %}{% set badge_class = 'status-high' %}{% set icon = 'fa-fire-alt' %}
-                            {% elif 'Medium' in interest %}{% set badge_class = 'status-medium' %}{% set icon = 'fa-bolt' %}
-                            {% elif 'Low' in interest %}{% set badge_class = 'status-low' %}{% set icon = 'fa-snowflake' %}
-                            {% endif %}
-                            <span class="status-badge {{ badge_class }}"><i class="fas {{ icon }}"></i> {{ interest }}</span>
+                        <td style="padding: 1.25rem 1.5rem;">
+                            <div style="display: flex; align-items: center; gap: 0.8rem;">
+                                <span style="font-size: 0.9rem; font-weight: 800; color: #fff; width: 30px;">{{ contact.importance_score or '0' }}</span>
+                                <div style="flex: 1; height: 4px; background: rgba(255,255,255,0.05); border-radius: 10px; min-width: 60px;">
+                                    <div style="width: {{ (contact.importance_score|float * 10) if contact.importance_score else 0 }}%; height: 100%; background: var(--primary); border-radius: 10px;"></div>
+                                </div>
+                            </div>
                         </td>
-                        <td style="padding: 1.2rem 2rem; border-bottom: 1px solid rgba(255,255,255,0.02); text-align: right;">
+                        <td style="padding: 1.25rem 1.5rem; text-align: right;">
+                            <button class="btn" style="padding: 0.4rem; color: var(--text-muted);"><i class="fas fa-ellipsis-v"></i></button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% else %}
+                        <tr style="border-bottom: none;"><td colspan="4" style="padding: 5rem; text-align: center; color: var(--text-muted);">No leads found.</td></tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
                             <button class="btn btn-secondary" onclick="confirmDelete('{{ contact.email }}', '{{ contact.name }}')" style="width: 36px; height: 36px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 10px; background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.1); color: #ef4444; margin-left: auto;">
                                 <i class="fas fa-trash-alt"></i>
                             </button>
@@ -145,10 +143,10 @@
     <div class="drawer-header">
         <button class="drawer-close" onclick="closeDrawer()"><i class="fas fa-times"></i></button>
         <div style="display: flex; align-items: center; gap: 1.5rem;">
-            <img id="drawerAvatar" src="" style="width: 72px; height: 72px; border-radius: 20px; border: 2px solid rgba(255,255,255,0.2); box-shadow: 0 10px 20px rgba(0,0,0,0.3);">
+            <img id="drawerAvatar" src="" style="width: 72px; height: 72px; border-radius: 20px; border: 2px solid var(--primary); box-shadow: 0 0 20px rgba(204,255,0,0.1);">
             <div>
-                <h2 id="drawerName" style="margin: 0; font-size: 1.5rem; font-weight: 700; color: white;"></h2>
-                <div id="drawerCompany" style="color: var(--primary-light); font-size: 0.95rem; margin-top: 0.2rem; font-weight: 500;"></div>
+                <h2 id="drawerName" style="margin: 0; font-size: 1.5rem; font-weight: 800; color: white;"></h2>
+                <div id="drawerCompany" style="color: var(--primary); font-size: 0.95rem; margin-top: 0.2rem; font-weight: 700;"></div>
             </div>
         </div>
     </div>
@@ -180,7 +178,23 @@
         </div>
         
         <div class="form-group-modern">
-            <label>Intelligence Segment</label>
+            <label>Intelligence Summary</label>
+            <div style="background: rgba(0,0,0,0.2); border-radius: 12px; padding: 1rem; border: 1px solid rgba(255,255,255,0.05); color: #94a3b8; font-size: 0.9rem; line-height: 1.5; font-style: italic;" id="drawerSummary"></div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem;">
+            <div class="form-group-modern">
+                <label>Sentiment</label>
+                <div id="drawerSentimentWrapper"></div>
+            </div>
+            <div class="form-group-modern">
+                <label>Impact Score</label>
+                <div id="drawerImportanceWrapper" style="font-size: 1.2rem; font-weight: 800; color: var(--primary); padding: 0.5rem 0;"></div>
+            </div>
+        </div>
+
+        <div class="form-group-modern">
+            <label>Interest Level</label>
             <div id="drawerInterestWrapper" style="margin-top: 0.5rem;"></div>
         </div>
     </div>
@@ -214,9 +228,10 @@
         
         // Update header text
         const showingText = document.getElementById('showingCount');
-        if(filterType === 'all') showingText.innerText = 'Showing all contacts';
-        else if(filterType === 'High') showingText.innerText = 'Showing hot leads';
-        else if(filterType === 'New') showingText.innerText = 'Showing recently added';
+        if(filterType === 'all') showingText.innerText = 'Showing all insights';
+        else if(filterType === 'High') showingText.innerText = 'Showing key opportunities';
+        else if(filterType === 'Positive') showingText.innerText = 'Showing positive signals';
+        else if(filterType === 'Negative') showingText.innerText = 'Showing friction points';
         
         filterContacts();
     }
@@ -240,7 +255,12 @@
             
             let matchesStatus = true;
             if (currentFilter !== 'all') {
-                if (currentFilter === 'New' && !(interest === 'New' || interest === 'Cold')) {
+                const dataTd = row.querySelector('td[data-sentiment]');
+                const sentiment = dataTd ? dataTd.getAttribute('data-sentiment') : '';
+                const interest = row.getAttribute('data-interest') || 'New';
+                if (currentFilter === 'Positive' && sentiment !== 'Positive') {
+                    matchesStatus = false;
+                } else if (currentFilter === 'Negative' && sentiment !== 'Negative') {
                     matchesStatus = false;
                 } else if (currentFilter === 'High' && !interest.includes('High')) {
                     matchesStatus = false;
@@ -416,10 +436,17 @@
         else if(interestStr.includes('Medium')) { badgeClass = 'status-medium'; badgeIcon = 'fa-bolt'; }
         else if(interestStr.includes('Low')) { badgeClass = 'status-low'; badgeIcon = 'fa-snowflake'; }
         
-        document.getElementById('drawerInterestWrapper').innerHTML = `<span class="status-badge ${badgeClass}" style="font-size: 0.95rem; padding: 0.6rem 1.2rem; border-radius: 12px;"><i class="fas ${badgeIcon}"></i> ${interestStr}</span>`;
-
-        // Change drawer footer close button text just to be sure
-        document.querySelector('.drawer-footer .btn-secondary').innerText = 'Close Drawer';
+        document.getElementById('drawerInterestWrapper').innerHTML = `<span class="status-badge ${badgeClass}" style="font-size: 0.85rem; padding: 0.5rem 1rem; border-radius: 10px;"><i class="fas ${badgeIcon}"></i> ${interestStr}</span>`;
+        
+        // Sentiment & Importance
+        const sent = contact.sentiment || 'Neutral';
+        const sWrap = document.getElementById('drawerSentimentWrapper');
+        if(sent === 'Positive') sWrap.innerHTML = `<span style="color: #00ff88; font-weight: 700; font-size: 0.9rem;"><i class="fas fa-face-smile"></i> Positive</span>`;
+        else if(sent === 'Negative') sWrap.innerHTML = `<span style="color: #ff4d4d; font-weight: 700; font-size: 0.9rem;"><i class="fas fa-face-frown"></i> Negative</span>`;
+        else sWrap.innerHTML = `<span style="color: #94a3b8; font-weight: 700; font-size: 0.9rem;"><i class="fas fa-user"></i> Neutral</span>`;
+        
+        document.getElementById('drawerImportanceWrapper').innerText = `${contact.importance_score || 0} / 10`;
+        document.getElementById('drawerSummary').innerText = contact.summary || 'No deeper intelligence summary available.';
 
         document.getElementById('drawerOverlay').classList.add('show');
         document.getElementById('contactDrawer').classList.add('open');

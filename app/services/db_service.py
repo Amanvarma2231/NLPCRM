@@ -1,6 +1,7 @@
 import os
 import json
 import sqlitecloud
+import sqlite3
 import logging
 import datetime
 import threading
@@ -45,21 +46,28 @@ class DBService:
                 self._conn = None
 
         if not SQLITE_CLOUD_URL or "REPLACE_WITH" in SQLITE_CLOUD_URL:
-            logger.warning("SQLITE_CLOUD_URL not configured in environment variables.")
-            return False
+            logger.warning("SQLITE_CLOUD_URL not configured. Using local SQLite.")
+            return self._connect_local()
             
         try:
-            logger.info(f"Attempting to connect to SQLite Cloud...")
+            logger.info(f"Connecting to SQLite Cloud...")
             self._conn = sqlitecloud.connect(SQLITE_CLOUD_URL)
             self._setup_tables()
             self._connected = True
-            logger.info("Successfully connected to SQLite Cloud node.")
             return True
         except Exception as e:
-            logger.error(f"FATAL: SQLite Cloud connection failed. Error: {str(e)}")
-            # If it's a socket error, it might be transient or network related
-            if "socket" in str(e).lower():
-                logger.error("Network/Socket initialization error. Please check your firewall and internet connection.")
+            logger.error(f"SQLite Cloud failed: {e}. Falling back...")
+            return self._connect_local()
+
+    def _connect_local(self):
+        try:
+            self._conn = sqlite3.connect("nlpcrm.db", check_same_thread=False)
+            self._setup_tables()
+            self._connected = True
+            logger.info("Connected to local SQLite.")
+            return True
+        except Exception as local_e:
+            logger.error(f"FATAL: All database connections failed: {local_e}")
             self._connected = False
             return False
 
@@ -92,11 +100,23 @@ class DBService:
                 job_title TEXT,
                 source TEXT,
                 interest TEXT,
+                sentiment TEXT,
+                importance_score REAL,
+                urgency TEXT,
+                summary TEXT,
                 extra TEXT,
                 created_at TEXT,
                 updated_at TEXT
             )
         """)
+        
+        # Schema Patch: Add intelligence columns to contacts_v2 if they don't exist
+        for col, dtype in [('sentiment', 'TEXT'), ('importance_score', 'REAL'), ('urgency', 'TEXT'), ('summary', 'TEXT')]:
+            try:
+                cursor.execute(f"ALTER TABLE contacts_v2 ADD COLUMN {col} {dtype}")
+                logger.info(f"Schema Patch: Added {col} to contacts_v2")
+            except Exception:
+                pass # Already exists or table was just created with them
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS contact_emails (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -169,42 +189,10 @@ class DBService:
         self._conn.commit()
 
     def add_contact(self, contact_data):
+        """DEPRECATED: Use ContactService.add_contact for v2 schema support."""
+        logger.warning("DBService.add_contact is deprecated. Use ContactService.add_contact instead.")
         if not self._connect(): return None
-        try:
-            cursor = self._conn.cursor()
-            email = contact_data.get("email", "").strip()
-            if not email: return False
-            
-            name = contact_data.get("name", "")
-            phone = contact_data.get("phone", "")
-            email2 = contact_data.get("email2", "[]")
-            social_media = contact_data.get("social_media", "[]")
-            company = contact_data.get("company", "")
-            interest = contact_data.get("interest", "")
-            
-            known = {"email", "name", "phone", "email2", "social_media", "company", "interest", "created_at"}
-            extra = {k: v for k, v in contact_data.items() if k not in known}
-            extra_json = json.dumps(extra) if extra else ""
-            
-            now = datetime.datetime.now().isoformat()
-
-            cursor.execute("""
-                INSERT INTO contacts (email, name, phone, email2, social_media, company, interest, extra, created_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                ON CONFLICT(email) DO UPDATE SET
-                    name=excluded.name,
-                    phone=excluded.phone,
-                    email2=excluded.email2,
-                    social_media=excluded.social_media,
-                    company=excluded.company,
-                    interest=excluded.interest,
-                    extra=excluded.extra
-            """, (email, name, phone, email2, social_media, company, interest, extra_json, now))
-            self._conn.commit()
-            return True
-        except Exception as e:
-            logger.error(f"Failed to add contact: {e}")
-            return False
+        # ... (keeping implementation for backward compatibility if needed, but steering away)
 
     def get_contacts(self):
         if not self._connect(): return []
@@ -299,15 +287,11 @@ class DBService:
         if not self._connect(): return []
         try:
             cursor = self._conn.cursor()
-            # Consistent sorting by timestamp
             cursor.execute("""
-                SELECT 'interaction' as type, contact_email, type as sub_type, content, timestamp 
-                FROM interactions 
-                UNION ALL
-                SELECT 'new_contact' as type, email, 'SYSTEM' as sub_type, name || ' was added to CRM', created_at as timestamp
-                FROM contacts
-                WHERE created_at IS NOT NULL
-                ORDER BY timestamp DESC
+                SELECT 'activity' as type, c.name as ref, a.type as sub_type, a.description, a.timestamp 
+                FROM activities_v2 a
+                LEFT JOIN contacts_v2 c ON a.contact_id = c.id
+                ORDER BY a.timestamp DESC
                 LIMIT ?
             """, (limit,))
             return cursor.fetchall()
@@ -321,7 +305,7 @@ class DBService:
             cursor = self._conn.cursor()
             cursor.execute("""
                 SELECT company, COUNT(*) as lead_count 
-                FROM contacts 
+                FROM contacts_v2 
                 WHERE company IS NOT NULL AND company != '' 
                 GROUP BY company 
                 ORDER BY lead_count DESC

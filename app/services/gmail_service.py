@@ -1,11 +1,21 @@
 import os
 import pickle
-from googleapiclient.discovery import build
-from google_auth_oauthlib.flow import Flow
-from google.auth.transport.requests import Request
-from flask import current_app
+import logging
+from dotenv import load_dotenv
 
-SCOPES = ['https://www.googleapis.com/auth/gmail.readonly', 'https://www.googleapis.com/auth/calendar.readonly']
+load_dotenv()
+logger = logging.getLogger("GoogleService")
+
+SCOPES = [
+    'https://www.googleapis.com/auth/gmail.readonly',
+    'https://www.googleapis.com/auth/userinfo.email',
+    'https://www.googleapis.com/auth/userinfo.profile',
+    'openid'
+]
+
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
+GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "")
+
 
 class GoogleService:
     def __init__(self):
@@ -13,91 +23,107 @@ class GoogleService:
         self._load_creds()
 
     def _load_creds(self):
-        if os.path.exists('token.pickle'):
-            with open('token.pickle', 'rb') as token:
-                self.creds = pickle.load(token)
+        try:
+            if os.path.exists('token.pickle'):
+                with open('token.pickle', 'rb') as f:
+                    self.creds = pickle.load(f)
+        except Exception as e:
+            logger.warning(f"Could not load token: {e}")
+            self.creds = None
 
     def is_authenticated(self):
-        return self.creds and self.creds.valid
+        return bool(self.creds and getattr(self.creds, 'valid', False))
 
-    def get_flow(self, redirect_uri=None):
+    def is_configured(self):
+        return bool(GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET)
+
+    def _get_flow(self, redirect_uri):
+        from google_auth_oauthlib.flow import Flow
         client_config = {
             "web": {
-                "client_id": current_app.config.get('GOOGLE_CLIENT_ID'),
-                "client_secret": current_app.config.get('GOOGLE_CLIENT_SECRET'),
+                "client_id": GOOGLE_CLIENT_ID,
+                "client_secret": GOOGLE_CLIENT_SECRET,
                 "auth_uri": "https://accounts.google.com/o/oauth2/auth",
                 "token_uri": "https://oauth2.googleapis.com/token",
+                "redirect_uris": [redirect_uri]
             }
         }
-        flow = Flow.from_client_config(
-            client_config,
-            scopes=SCOPES,
-            redirect_uri=redirect_uri
-        )
-        return flow
+        return Flow.from_client_config(client_config, scopes=SCOPES, redirect_uri=redirect_uri)
 
     def get_auth_url(self, redirect_uri):
-        flow = self.get_flow(redirect_uri=redirect_uri)
-        authorization_url, state = flow.authorization_url(
+        flow = self._get_flow(redirect_uri)
+        auth_url, state = flow.authorization_url(
             access_type='offline',
-            include_granted_scopes='true'
+            include_granted_scopes='true',
+            prompt='select_account'
         )
-        return authorization_url, state
+        return auth_url, state
 
     def fetch_token(self, authorization_response, state, redirect_uri):
-        flow = self.get_flow(redirect_uri=redirect_uri)
+        flow = self._get_flow(redirect_uri)
         flow.fetch_token(authorization_response=authorization_response)
         self.creds = flow.credentials
-        with open('token.pickle', 'wb') as token:
-            pickle.dump(self.creds, token)
+        with open('token.pickle', 'wb') as f:
+            pickle.dump(self.creds, f)
         return self.creds
 
+    def get_user_info(self):
+        """Get logged-in Google user's email and name."""
+        if not self.is_authenticated():
+            return None
+        try:
+            from googleapiclient.discovery import build
+            service = build('oauth2', 'v2', credentials=self.creds)
+            info = service.userinfo().get().execute()
+            return {
+                'email': info.get('email', ''),
+                'name': info.get('name', ''),
+                'picture': info.get('picture', '')
+            }
+        except Exception as e:
+            logger.error(f"get_user_info error: {e}")
+            return None
+
     def fetch_gmail_messages(self, query="is:unread", max_results=5):
-        if not self.creds: 
+        if not self.is_authenticated():
             return []
         try:
+            from googleapiclient.discovery import build
+            import base64
             service = build('gmail', 'v1', credentials=self.creds)
-            results = service.users().messages().list(userId='me', q=query, maxResults=max_results).execute()
+            results = service.users().messages().list(
+                userId='me', q=query, maxResults=max_results
+            ).execute()
             messages = results.get('messages', [])
-            
-            detailed_messages = []
+            detailed = []
             for msg in messages:
-                m = service.users().messages().get(userId='me', id=msg['id'], format='full').execute()
+                m = service.users().messages().get(
+                    userId='me', id=msg['id'], format='full'
+                ).execute()
                 headers = m.get('payload', {}).get('headers', [])
-                from_email = next((h['value'] for h in headers if h['name'] == 'From'), 'Unknown')
-                
-                # Extract body
-                body = ""
+                from_email = next((h['value'] for h in headers if h['name'] == 'From'), '')
+                body = ''
                 payload = m.get('payload', {})
                 if 'parts' in payload:
                     for part in payload['parts']:
-                        if part['mimeType'] == 'text/plain':
-                            import base64
-                            body = base64.urlsafe_b64decode(part['body']['data']).decode('utf-8')
+                        if part['mimeType'] == 'text/plain' and part.get('body', {}).get('data'):
+                            body = base64.urlsafe_b64decode(part['body']['data']).decode('utf-8', errors='ignore')
                             break
-                elif 'body' in payload and payload['body'].get('data'):
-                    import base64
-                    body = base64.urlsafe_b64decode(payload['body']['data']).decode('utf-8')
-                
+                elif payload.get('body', {}).get('data'):
+                    body = base64.urlsafe_b64decode(payload['body']['data']).decode('utf-8', errors='ignore')
                 if not body:
                     body = m.get('snippet', '')
-
-                detailed_messages.append({
+                detailed.append({
                     'id': m['id'],
                     'from': from_email,
-                    'text': body,
+                    'text': body[:2000],
                     'snippet': m.get('snippet', ''),
-                    'source': 'gmail'
+                    'source': 'Gmail'
                 })
-            return detailed_messages
+            return detailed
         except Exception as e:
-            print(f"Gmail fetch error: {e}")
+            logger.error(f"Gmail fetch error: {e}")
             return []
 
-    def fetch_calendar_events(self, max_results=10):
-        if not self.creds: return []
-        service = build('calendar', 'v3', credentials=self.creds)
-        events_result = service.events().list(calendarId='primary', maxResults=max_results).execute()
-        return events_result.get('items', [])
 
 google_service = GoogleService()

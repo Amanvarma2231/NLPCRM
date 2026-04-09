@@ -105,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
             showToast('Something went wrong. Please check the console.', 'error');
         } finally {
             processBtn.disabled = false;
-            processBtn.innerHTML = 'Process with Qwen';
+            processBtn.innerHTML = '<i class="fas fa-sparkles"></i> EXTRACT SIGNAL';
         }
     });
 

@@ -35,12 +35,21 @@
                     <div style="width: 12px; height: 12px; border-radius: 50%; background: #6366f1; box-shadow: 0 0 10px rgba(99, 102, 241, 0.5);"></div>
                     <span style="font-weight: 800; font-size: 1.1rem; color: #fff; letter-spacing: -0.02em;">Lead Capture</span>
                 </div>
-                {% set new_leads = contacts|selectattr('interest', 'none')|list + contacts|selectattr('interest', 'equalto', '')|list + contacts|selectattr('interest', 'equalto', 'New')|list %}
-                <span style="background: rgba(255,255,255,0.1); color: #fff; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700;">{{ new_leads|length }}</span>
+                </div>
+                {% set lists = namespace(new_leads=[], engaging_leads=[]) %}
+                {% for c in contacts %}
+                    {% set cint = c.get('interest', '') %}
+                    {% if cint == '' or cint == 'none' or cint == 'New' %}
+                        {% set _ = lists.new_leads.append(c) %}
+                    {% else %}
+                        {% set _ = lists.engaging_leads.append(c) %}
+                    {% endif %}
+                {% endfor %}
+                <span style="background: rgba(255,255,255,0.1); color: #fff; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700;">{{ lists.new_leads|length }}</span>
             </div>
             
             <div style="padding: 1.5rem; flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem;" class="kanban-scroll">
-                {% for contact in new_leads %}
+                {% for contact in lists.new_leads %}
                 <div class="kanban-card" style="background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255,255,255,0.05); padding: 1.2rem; border-radius: 16px; cursor: grab; transition: all 0.2s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
                         <img src="https://ui-avatars.com/api/?name={{ (contact.name or contact.email or 'U')|urlencode }}&background=1e293b&color=fff" style="width: 36px; height: 36px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1);">
@@ -68,20 +77,19 @@
                     <div style="width: 12px; height: 12px; border-radius: 50%; background: #f59e0b; box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);"></div>
                     <span style="font-weight: 800; font-size: 1.1rem; color: #fff; letter-spacing: -0.02em;">In Engagement</span>
                 </div>
-                {% set engaging_leads = contacts|selectattr('interest', 'defined')|selectattr('interest', 'ne', '')|selectattr('interest', 'ne', 'New')|list %}
-                <span style="background: rgba(255,255,255,0.1); color: #fff; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700;">{{ engaging_leads|length }}</span>
+                <span style="background: rgba(255,255,255,0.1); color: #fff; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700;">{{ lists.engaging_leads|length }}</span>
             </div>
             
             <div style="padding: 1.5rem; flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem;" class="kanban-scroll">
-                {% for contact in engaging_leads %}
+                {% for contact in lists.engaging_leads %}
                 <div class="kanban-card" style="background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(255,255,255,0.05); padding: 1.2rem; border-radius: 16px; cursor: grab; transition: all 0.2s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
                         <img src="https://ui-avatars.com/api/?name={{ (contact.name or contact.email or 'U')|urlencode }}&background=1e293b&color=fff" style="width: 36px; height: 36px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1);">
                         
                         {% set badge_color = '#fbbf24' %}
                         {% set badge_bg = 'rgba(251, 191, 36, 0.1)' %}
-                        {% if 'High' in contact.interest %}{% set badge_color = '#ef4444' %}{% set badge_bg = 'rgba(239, 68, 68, 0.1)' %}{% endif %}
-                        <span style="font-size: 0.7rem; padding: 0.3rem 0.6rem; background: {{ badge_bg }}; color: {{ badge_color }}; border-radius: 8px; font-weight: 600; text-transform: uppercase;">{{ contact.interest }}</span>
+                        {% if contact.get('interest') and 'High' in contact.get('interest') %}{% set badge_color = '#ef4444' %}{% set badge_bg = 'rgba(239, 68, 68, 0.1)' %}{% endif %}
+                        <span style="font-size: 0.7rem; padding: 0.3rem 0.6rem; background: {{ badge_bg }}; color: {{ badge_color }}; border-radius: 8px; font-weight: 600; text-transform: uppercase;">{{ contact.get('interest', 'Lead') }}</span>
                     </div>
                     <div style="font-weight: 700; font-size: 1.05rem; color: white;">{{ contact.name or contact.email or 'System Entity' }}</div>
                     <div style="font-size: 0.85rem; color: var(--text-dim); margin-top: 0.3rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
