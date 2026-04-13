@@ -6,6 +6,8 @@ from dotenv import load_dotenv
 load_dotenv()
 logger = logging.getLogger("GoogleService")
 
+from app.services.db_service import db_service
+
 SCOPES = [
     'https://www.googleapis.com/auth/gmail.readonly',
     'https://www.googleapis.com/auth/userinfo.email',
@@ -13,14 +15,17 @@ SCOPES = [
     'openid'
 ]
 
-GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
-GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "")
-
-
 class GoogleService:
     def __init__(self):
         self.creds = None
         self._load_creds()
+
+    def _get_config(self):
+        """Fetch current Google configuration from DB with environment fallback."""
+        settings = db_service.get_settings()
+        client_id = settings.get('GOOGLE_CLIENT_ID') or os.getenv("GOOGLE_CLIENT_ID", "")
+        client_secret = settings.get('GOOGLE_CLIENT_SECRET') or os.getenv("GOOGLE_CLIENT_SECRET", "")
+        return client_id, client_secret
 
     def _load_creds(self):
         try:
@@ -35,14 +40,22 @@ class GoogleService:
         return bool(self.creds and getattr(self.creds, 'valid', False))
 
     def is_configured(self):
-        return bool(GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET)
+        client_id, client_secret = self._get_config()
+        configured = bool(client_id and client_secret)
+        if not configured:
+            logger.warning("Google Service is NOT configured. Client ID or Secret missing.")
+        return configured
 
     def _get_flow(self, redirect_uri):
         from google_auth_oauthlib.flow import Flow
+        client_id, client_secret = self._get_config()
+        
+        logger.info(f"Generating Google OAuth Flow | Client ID: {client_id[:10]}... | Redirect URI: {redirect_uri}")
+        
         client_config = {
             "web": {
-                "client_id": GOOGLE_CLIENT_ID,
-                "client_secret": GOOGLE_CLIENT_SECRET,
+                "client_id": client_id,
+                "client_secret": client_secret,
                 "auth_uri": "https://accounts.google.com/o/oauth2/auth",
                 "token_uri": "https://oauth2.googleapis.com/token",
                 "redirect_uris": [redirect_uri]

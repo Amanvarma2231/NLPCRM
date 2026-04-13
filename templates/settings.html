@@ -104,7 +104,7 @@
                             <p style="font-size: 0.8rem; color: var(--text-dim); margin-bottom: 0.8rem;">Copy this URL into <b>Authorized redirect URIs</b> in Google Cloud:</p>
                             <div class="input-with-icon">
                                 <input type="text" id="authRedirectUri" readonly class="settings-input" style="font-family: monospace; font-size: 0.8rem; background: rgba(0,0,0,0.4);" 
-                                       value="{{ url_for('main.google_auth_callback', _external=True) }}">
+                                       value="{{ url_for('main.google_callback', _external=True) }}">
                                 <button type="button" class="visibility-toggle" onclick="copyToClipboard('authRedirectUri', this)"><i class="fas fa-copy"></i></button>
                             </div>
                         </div>

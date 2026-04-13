@@ -475,20 +475,20 @@ def ai_engine():
 @main_bp.route("/google-auth")
 @login_required
 def google_auth():
-    redirect_uri = url_for('main.google_auth_callback', _external=True)
+    redirect_uri = url_for('main.google_callback', _external=True)
     logger.info(f"Initiating Google Auth with Redirect URI: {redirect_uri}")
     auth_url, state = google_service.get_auth_url(redirect_uri)
     session['google_auth_state'] = state
     return redirect(auth_url)
 
-@main_bp.route("/google-auth-callback")
-def google_auth_callback():
+@main_bp.route("/google/callback")
+def google_callback():
     state = session.get('google_auth_state')
     logger.info(f"Received Google Auth Callback. State in session: {'Yes' if state else 'No'}")
     if not state:
         return redirect(url_for('main.settings', error="State mismatch in Google Auth."))
     
-    redirect_uri = url_for('main.google_auth_callback', _external=True)
+    redirect_uri = url_for('main.google_callback', _external=True)
     logger.info(f"Fetching Token with Redirect URI: {redirect_uri}")
     try:
         google_service.fetch_token(request.url, state, redirect_uri)
