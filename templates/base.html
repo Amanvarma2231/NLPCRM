@@ -11,7 +11,11 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <meta name="theme-color" content="#0a0a0f">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="NLPCRM">
 </head>
 <body>
     <!-- Premium Mesh Background -->
@@ -86,7 +90,7 @@
                 {% endif %}
             </div>
             <div class="sidebar-user-info">
-                <span class="sidebar-user-name">{{ admin_settings.ADMIN_NAME or 'Admin' }}</span>
+                <span class="sidebar-user-name">{{ (admin_settings or {}).get('ADMIN_NAME', 'Admin') }}</span>
                 <span class="sidebar-user-role">Administrator</span>
             </div>
             <a href="{{ url_for('main.logout') }}" class="sidebar-logout" title="Secure Logout">
@@ -470,12 +474,20 @@
 
     // ===== View Contact =====
     function viewContact(contact) {
-        if(typeof contact==='string') { try{contact=JSON.parse(contact);}catch(e){return;} }
-        document.getElementById('viewName').textContent=contact.name||'Unknown';
-        document.getElementById('viewCompany').textContent=contact.company||'No Company';
-        document.getElementById('viewAvatar').src=`https://ui-avatars.com/api/?name=${encodeURIComponent(contact.name||'U')}&background=6366f1&color=fff&size=128`;
-        document.getElementById('viewEmail').textContent=contact.email||'N/A';
-        document.getElementById('viewPhone').textContent=contact.phone||'N/A';
+        if(!contact) return;
+        if(typeof contact==='string') { try{contact=JSON.parse(contact);}catch(e){console.error("View parse error", e); return;} }
+        
+        // Safety mappings
+        const name = contact.name || 'Intelligence Entity';
+        const company = contact.company || 'Organization Discovery Pending';
+        const email = contact.email || 'No Primary Email';
+        const phone = contact.phone || 'No Phone Data';
+        
+        document.getElementById('viewName').textContent = name;
+        document.getElementById('viewCompany').textContent = company;
+        document.getElementById('viewAvatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=6366f1&color=fff&size=128&bold=true`;
+        document.getElementById('viewEmail').textContent = email;
+        document.getElementById('viewPhone').textContent = phone;
         const exC=document.getElementById('viewExtraEmailsContainer'), exL=document.getElementById('viewExtraEmailsList');
         exL.innerHTML='';
         try { const em=typeof contact.email2==='string'?JSON.parse(contact.email2):(contact.email2||[]); if(em.length){em.forEach(e=>{exL.innerHTML+=`<div style="font-size:0.85rem;color:var(--text-dim);">${e.label}: <a href="mailto:${e.value}" style="color:#6366f1;">${e.value}</a></div>`;}); exC.style.display='block';} else exC.style.display='none'; } catch(e){exC.style.display='none';}

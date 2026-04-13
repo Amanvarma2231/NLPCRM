@@ -1,5 +1,5 @@
 import os
-from flask import Flask, jsonify, request, render_template, redirect, url_for, session
+from flask import Flask, jsonify, request, render_template, redirect, url_for, session, send_from_directory
 from flask_cors import CORS
 from flask_wtf.csrf import CSRFProtect
 from flask_talisman import Talisman
@@ -62,7 +62,10 @@ def create_app():
         'img-src': [
             '\'self\'',
             'data:',
-            'https://ui-avatars.com'
+            'https://ui-avatars.com',
+            'https://*.ui-avatars.com',
+            'https://cdnjs.cloudflare.com',
+            'https://cdn.jsdelivr.net'
         ],
         'script-src': [
             '\'self\'',
@@ -95,6 +98,12 @@ def create_app():
     def handle_404(error):
         if request.is_json:
             return jsonify({"status": "error", "message": "Resource not found"}), 404
+            
+        # Do not redirect to login for static assets or system files
+        path = request.path.lower()
+        if any(path.startswith(prefix) for prefix in ['/static/', '/api/']) or any(path.endswith(ext) for ext in ['.js', '.css', '.png', '.jpg', '.ico', '.json', '.svg', '.webmanifest', '.txt', '.pdf']):
+            return "404 Not Found", 404
+            
         if not session.get('logged_in'):
             return redirect(url_for('main.login'))
         return redirect(url_for('main.dashboard', error_msg="The requested page was not found."))
@@ -115,5 +124,18 @@ def create_app():
     @app.errorhandler(413)
     def request_entity_too_large(error):
         return jsonify({"status": "error", "message": "File too large"}), 413
+
+    # --- System Asset Routes (Directly on App to bypass Blueprint auth) ---
+    @app.route('/favicon.ico')
+    def favicon():
+        return send_from_directory(os.path.abspath(app.static_folder), 'favicon.ico', mimetype='image/vnd.microsoft.icon')
+
+    @app.route('/manifest.json')
+    def manifest():
+        return send_from_directory(os.path.abspath(app.static_folder), 'manifest.json', mimetype='application/manifest+json')
+
+    @app.route('/service-worker.js')
+    def service_worker():
+        return send_from_directory(os.path.abspath(app.static_folder), 'service-worker.js', mimetype='application/javascript')
 
     return app

@@ -159,8 +159,12 @@ def dashboard():
 @main_bp.route("/contacts")
 @login_required
 def contacts_list():
-    contacts = contact_service.get_contacts()
-    return render_template("contacts.html", contacts=contacts)
+    try:
+        contacts = contact_service.get_contacts() or []
+        return render_template("contacts.html", contacts=contacts)
+    except Exception as e:
+        logger.error(f"Failed to render contacts_list: {e}", exc_info=True)
+        return redirect(url_for('main.dashboard', error_msg="Failed to load contacts directory."))
 
 @main_bp.route("/contacts/add", methods=["POST"])
 @login_required
@@ -487,15 +491,6 @@ def google_auth_callback():
 
 # --- STATIC & SYSTEM ---
 
-# Additional static assets
-@main_bp.route('/favicon.ico')
-def favicon():
-    return send_from_directory(os.path.join(current_app.root_path, 'static'), 'favicon.ico', mimetype='image/vnd.microsoft.icon')
-
-@main_bp.route('/manifest.json')
-def manifest():
-    return send_from_directory(os.path.join(current_app.root_path, 'static'), 'manifest.json', mimetype='application/manifest+json')
-
-@main_bp.route('/service-worker.js')
-def service_worker():
-    return send_from_directory(os.path.join(current_app.root_path, 'static'), 'service-worker.js', mimetype='application/javascript')
+# --- DEPRECATED SYSTEM ROUTES (MOVED TO APP ROOT) ---
+# Routes for favicon, manifest, and service-worker are now handled in app/__init__.py
+# to ensure consistent access across all authentication states.

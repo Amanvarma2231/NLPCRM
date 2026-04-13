@@ -56,7 +56,11 @@ class DBService:
             self._connected = True
             return True
         except Exception as e:
-            logger.error(f"SQLite Cloud failed: {e}. Falling back...")
+            msg = str(e)
+            if "paused" in msg.lower():
+                logger.info(f"SQLite Cloud node is paused. Falling back to local DB.")
+            else:
+                logger.warning(f"SQLite Cloud failed: {e}. Falling back...")
             return self._connect_local()
 
     def _connect_local(self):
