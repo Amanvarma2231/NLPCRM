@@ -4,9 +4,9 @@
 <div class="fade-in" style="max-width: 1200px; margin: 0 auto;">
 
     <!-- Premium Dashboard Header -->
-    <div class="frosted-glass" style="margin-bottom: 3rem; padding: 2.5rem; border-radius: 24px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--glass-border);">
+    <div class="frosted-glass neural-scan neural-header-glow" style="margin-bottom: 3rem; padding: 2.5rem; border-radius: 24px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--glass-border);">
         <div>
-            <div style="font-size: 0.75rem; font-weight: 900; color: #818cf8; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.5rem;">Intelligence Hub v3.0</div>
+            <div style="font-size: 0.75rem; font-weight: 900; color: #818cf8; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.5rem;">Intelligence Hub v3.1 | NEURAL ENGINE ACTIVE</div>
             <h1 style="font-size: 2.8rem; font-weight: 900; letter-spacing: -0.04em; color: #fff; margin: 0;">Lead <span style="font-weight: 400; color: var(--text-dim);">Intelligence</span></h1>
             <p style="color: var(--text-muted); margin-top: 0.5rem; font-size: 1rem;">Precision monitoring of communication streams and neural lead extraction.</p>
         </div>
@@ -30,7 +30,7 @@
         <div class="frosted-glass" style="padding: 1.8rem; border-radius: 24px; border-left: 5px solid #10b981;">
             <p style="font-size: 0.75rem; font-weight: 800; color: var(--text-dim); text-transform: uppercase; margin-bottom: 1rem; letter-spacing: 0.05em;">Neural Accuracy</p>
             <div style="font-size: 2.5rem; font-weight: 900; color: #fff; letter-spacing: -0.02em;">94.8<span style="font-size: 1.2rem; opacity: 0.4;">%</span></div>
-            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.6rem; font-weight: 700;"><i class="fas fa-brain"></i> Mistral NLP v2</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.6rem; font-weight: 700;"><i class="fas fa-brain"></i> Qwen 2.5 NLP v2</div>
         </div>
         <div class="frosted-glass" style="padding: 1.8rem; border-radius: 24px; border-left: 5px solid #0ea5e9;">
             <p style="font-size: 0.75rem; font-weight: 800; color: var(--text-dim); text-transform: uppercase; margin-bottom: 1rem; letter-spacing: 0.05em;">Active Streams</p>
@@ -464,20 +464,39 @@ document.getElementById('syncBtn').addEventListener('click', function() {
 const chartDefaults = {
     responsive: true,
     maintainAspectRatio: true,
-    plugins: { legend: { display: false }, tooltip: { enabled: true, backgroundColor: 'rgba(13,17,29,0.9)', titleColor: '#fff', bodyColor: '#94a3b8', borderColor: 'rgba(255,255,255,0.1)', borderWidth: 1, padding: 10, cornerRadius: 12 } },
-    scales: { x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#64748b', font: { size: 10, family: 'Outfit' } } }, y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#64748b', font: { size: 10, family: 'Outfit' } } } }
+    animation: {
+        duration: 2000,
+        easing: 'easeOutQuart'
+    },
+    plugins: { 
+        legend: { display: false }, 
+        tooltip: { 
+            enabled: true, 
+            backgroundColor: 'rgba(13,17,29,0.9)', 
+            titleColor: '#fff', 
+            bodyColor: '#94a3b8', 
+            borderColor: 'rgba(255,255,255,0.1)', 
+            borderWidth: 1, 
+            padding: 10, 
+            cornerRadius: 12 
+        } 
+    },
+    scales: { 
+        x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#64748b', font: { size: 10, family: 'Outfit' } } }, 
+        y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#64748b', font: { size: 10, family: 'Outfit' } } } 
+    }
 };
 const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'];
 
 const contactsCount = {{ contacts_count|default(0) }};
-const messagesCount = Math.max({{ messages_count|default(0) }}, 1);
+const messagesCount = {{ messages_count|default(0) }};
 
 // Leads Chart (Bar)
 new Chart(document.getElementById('leadsChart'), {
     type: 'bar',
     data: {
         labels: months,
-        datasets: [{ label: 'Leads', data: [24, 35, 28, 42, 55, 48, 70, 88, contactsCount], backgroundColor: 'rgba(204, 255, 0, 0.4)', borderColor: '#ccff00', borderWidth: 1, borderRadius: 6, borderSkipped: false }]
+        datasets: [{ label: 'Leads', data: [12, 18, 15, 22, 28, 25, 32, 38, contactsCount], backgroundColor: 'rgba(204, 255, 0, 0.4)', borderColor: '#ccff00', borderWidth: 1, borderRadius: 6, borderSkipped: false }]
     },
     options: {...chartDefaults}
 });
@@ -487,7 +506,7 @@ new Chart(document.getElementById('dealsChart'), {
     type: 'line',
     data: {
         labels: months,
-        datasets: [{ label: 'Signals', data: [5, 8, 12, 10, 18, 22, 28, 35, messagesCount], borderColor: '#ccff00', backgroundColor: 'rgba(204, 255, 0, 0.05)', tension: 0.4, fill: true, pointBackgroundColor: '#ccff00', pointRadius: 3, pointHoverRadius: 6 }]
+        datasets: [{ label: 'Signals', data: [5, 8, 6, 12, 15, 18, 22, 28, messagesCount], borderColor: '#6366f1', backgroundColor: 'rgba(99, 102, 241, 0.05)', tension: 0.4, fill: true, pointBackgroundColor: '#6366f1', pointRadius: 3, pointHoverRadius: 6 }]
     },
     options: {...chartDefaults}
 });
@@ -497,7 +516,7 @@ new Chart(document.getElementById('convChart'), {
     type: 'bar',
     data: {
         labels: months,
-        datasets: [{ label: 'Rate %', data: [12, 18, 15, 22, 28, 25, 32, 38, 42], backgroundColor: 'rgba(204, 255, 0, 0.3)', borderColor: '#ccff00', borderWidth: 1, borderRadius: 6 }]
+        datasets: [{ label: 'Rate %', data: [12, 18, 15, 22, 28, 25, 32, 45, 68], backgroundColor: 'rgba(52, 211, 153, 0.3)', borderColor: '#34d399', borderWidth: 1, borderRadius: 6 }]
     },
     options: {...chartDefaults}
 });

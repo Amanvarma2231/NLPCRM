@@ -16,6 +16,9 @@ def create_app():
                 static_folder='../static')
     
     # 1. Basic Middleware & Security
+    from werkzeug.middleware.proxy_fix import ProxyFix
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+    
     CORS(app)
     app.secret_key = os.getenv("SECRET_KEY", "super-secret-key-change-me-in-production")
     app.config.update(
@@ -104,9 +107,7 @@ def create_app():
         if any(path.startswith(prefix) for prefix in ['/static/', '/api/']) or any(path.endswith(ext) for ext in ['.js', '.css', '.png', '.jpg', '.ico', '.json', '.svg', '.webmanifest', '.txt', '.pdf']):
             return "404 Not Found", 404
             
-        if not session.get('logged_in'):
-            return redirect(url_for('main.login'))
-        return redirect(url_for('main.dashboard', error_msg="The requested page was not found."))
+        return render_template('404.html'), 404
 
     @app.errorhandler(405)
     def method_not_allowed(error):
@@ -114,12 +115,10 @@ def create_app():
 
     @app.errorhandler(500)
     def internal_error(error):
-        app.logger.error(f"Server Error: {error}")
+        app.logger.error(f"Critical System Error: {error}", exc_info=True)
         if request.is_json:
             return jsonify({"status": "error", "message": "Internal Server Error"}), 500
-        if not session.get('logged_in'):
-            return redirect(url_for('main.login'))
-        return render_template('dashboard.html', error_msg="A server error occurred. Please try again later."), 500
+        return render_template('500.html'), 500
         
     @app.errorhandler(413)
     def request_entity_too_large(error):

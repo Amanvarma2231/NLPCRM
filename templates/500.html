@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="height: calc(100vh - 100px); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 2rem;">
+    <div style="position: relative; margin-bottom: 2rem;">
+        <h1 style="font-size: 10rem; font-weight: 900; line-height: 0.8; margin: 0; background: linear-gradient(135deg, #ff3333, #4f46e5); -webkit-background-clip: text; -webkit-text-fill-color: transparent; opacity: 0.15;">500</h1>
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100%;">
+            <i class="fas fa-microchip" style="font-size: 4rem; color: #ff3333; margin-bottom: 1.5rem; display: block; filter: drop-shadow(0 0 15px rgba(255, 51, 51, 0.4));"></i>
+            <h2 style="font-size: 2.2rem; font-weight: 800; color: #fff; margin: 0; letter-spacing: -0.02em;">Neural Interruption</h2>
+        </div>
+    </div>
+    
+    <p style="max-width: 500px; color: var(--text-muted); font-size: 1.1rem; line-height: 1.6; margin-bottom: 2.5rem;">
+        An unexpected surge in the intelligence stream has caused a temporary system freeze. Our engineers have been notified.
+    </p>
+
+    <div style="display: flex; gap: 1rem;">
+        <a href="mailto:admin@nlpcrm.com" class="btn btn-secondary" style="padding: 1rem 2rem; border-radius: 16px;">
+            <i class="fas fa-envelope-open-text"></i> Report Issue
+        </button>
+        <a href="/dashboard" class="btn btn-primary" style="padding: 1rem 2.5rem; border-radius: 16px;">
+            <i class="fas fa-sync-alt"></i> Reload System
+        </a>
+    </div>
+
+    <!-- Background Decoration -->
+    <div style="position: fixed; top: 10%; right: 10%; width: 300px; height: 300px; background: radial-gradient(circle, rgba(255,51,51,0.05) 0%, transparent 70%); z-index: -1;"></div>
+</div>
+{% endblock %}

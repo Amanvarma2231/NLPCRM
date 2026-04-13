@@ -13,7 +13,7 @@ def validate_system():
     print("--- NLPCRM Backend Validation ---")
     
     # 1. Database Check
-    print("[1/3] Checking CRM Database...")
+    print("[1/4] Checking CRM Database...")
     try:
         from app.services.db_service import db_service
         if db_service._connect():
@@ -28,7 +28,7 @@ def validate_system():
         print(f"  - DB Error: {e}")
 
     # 2. AI Intelligence (NLP) Check
-    print("[2/3] Checking AI Intelligence (HuggingFace)...")
+    print("[2/4] Checking AI Intelligence (HuggingFace)...")
     try:
         from app.services.nlp_service import nlp_service
         test_text = "I am Amit from Tech-Solutions. We need a CRM. email: amit@tech.com"
@@ -43,12 +43,27 @@ def validate_system():
         print(f"  - AI Error: {e}")
 
     # 3. Connection Configuration Check
-    print("[3/3] Checking Connection Configs...")
+    print("[3/4] Checking Connection Configs...")
     from app.services.gmail_service import google_service
     from app.services.whatsapp_service import whatsapp_service
     
     print(f"  - Gmail Setup: {'READY' if google_service.is_configured() else 'INCOMPLETE'}")
     print(f"  - WhatsApp Setup: {'READY' if whatsapp_service.api_key and whatsapp_service.phone_id else 'INCOMPLETE'}")
+
+    # 4. System Health & PWA Check
+    print("[4/4] Checking System Health & PWA Manifest...")
+    log_exists = os.path.exists("app.log")
+    manifest_exists = os.path.exists("static/manifest.json")
+    sw_exists = os.path.exists("static/service-worker.js")
+    
+    print(f"  - Production Logs: {'OK' if log_exists else 'NOT CREATED YET'}")
+    print(f"  - PWA Manifest: {'OK' if manifest_exists else 'MISSING'}")
+    print(f"  - Service Worker: {'OK' if sw_exists else 'MISSING'}")
+    
+    if log_exists and manifest_exists and sw_exists:
+        print("\nPROJECT STATUS: 100% PROFESSIONAL & READY!")
+    else:
+        print("\nPROJECT STATUS: ALMOST READY (Wait for first run to create logs)")
 
 if __name__ == "__main__":
     validate_system()

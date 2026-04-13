@@ -109,6 +109,37 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Global Header Sync Button
+    const headerSyncBtn = document.getElementById('headerSyncBtn');
+    if (headerSyncBtn) {
+        headerSyncBtn.addEventListener('click', async () => {
+            const originalHtml = headerSyncBtn.innerHTML;
+            headerSyncBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing...';
+            headerSyncBtn.disabled = true;
+            
+            try {
+                const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+                const csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : '';
+                const response = await fetch('/sync-all', {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': csrfToken }
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showToast(`Successfully extracted ${data.synced_count} new leads!`, 'success');
+                    setTimeout(() => window.location.reload(), 1500);
+                } else {
+                    showToast('Sync encountered an error. Check integrations.', 'error');
+                }
+            } catch (err) {
+                showToast('Sync service connection lost.', 'error');
+            } finally {
+                headerSyncBtn.innerHTML = originalHtml;
+                headerSyncBtn.disabled = false;
+            }
+        });
+    }
+
     // Close modal when clicking outside
     window.addEventListener('click', (e) => {
         if (e.target === modal) {

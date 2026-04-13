@@ -1211,3 +1211,40 @@ textarea {
         transform: translateX(20px) scale(0.95);
     }
 }
+
+/* 💎 Premium Neural Scan Animation */
+.neural-scan {
+    position: relative;
+    overflow: hidden;
+}
+
+.neural-scan::after {
+    content: '';
+    position: absolute;
+    top: -100%;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to bottom, 
+        transparent, 
+        rgba(204, 255, 0, 0.05) 50%, 
+        transparent);
+    animation: scanMove 4s infinite linear;
+    pointer-events: none;
+}
+
+@keyframes scanMove {
+    0% { top: -100%; }
+    100% { top: 100%; }
+}
+
+.neural-header-glow {
+    position: relative;
+    box-shadow: 0 0 40px rgba(204, 255, 0, 0.05);
+    border-color: rgba(204, 255, 0, 0.2) !important;
+    transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.neural-header-glow:hover {
+    box-shadow: 0 0 60px rgba(204, 255, 0, 0.08);
+}

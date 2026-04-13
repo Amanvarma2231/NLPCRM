@@ -97,6 +97,17 @@
                                         class="fas fa-eye"></i></button>
                             </div>
                         </div>
+
+                        <!-- NEW: Redirect URI Helper -->
+                        <div class="form-group" style="margin-top: 1.5rem; padding: 1rem; background: rgba(59, 130, 246, 0.05); border: 1px dashed rgba(59, 130, 246, 0.3); border-radius: 12px;">
+                            <label style="color: var(--primary); font-size: 0.75rem;"><i class="fas fa-info-circle"></i> Google Console Configuration</label>
+                            <p style="font-size: 0.8rem; color: var(--text-dim); margin-bottom: 0.8rem;">Copy this URL into <b>Authorized redirect URIs</b> in Google Cloud:</p>
+                            <div class="input-with-icon">
+                                <input type="text" id="authRedirectUri" readonly class="settings-input" style="font-family: monospace; font-size: 0.8rem; background: rgba(0,0,0,0.4);" 
+                                       value="{{ url_for('main.google_auth_callback', _external=True) }}">
+                                <button type="button" class="visibility-toggle" onclick="copyToClipboard('authRedirectUri', this)"><i class="fas fa-copy"></i></button>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -506,6 +517,7 @@
 
 <script>
     // Visibility toggle for passwords
+    // Visibility toggle for passwords
     function toggleVisibility(inputId, btn) {
         const input = document.getElementById(inputId);
         const icon = btn.querySelector('i');
@@ -518,6 +530,21 @@
             icon.classList.remove('fa-eye-slash');
             icon.classList.add('fa-eye');
         }
+    }
+
+    function copyToClipboard(inputId, btn) {
+        const input = document.getElementById(inputId);
+        input.select();
+        document.execCommand("copy");
+        
+        const icon = btn.querySelector('i');
+        const originalClass = icon.className;
+        icon.className = 'fas fa-check';
+        btn.style.color = '#4ade80';
+        setTimeout(() => {
+            icon.className = originalClass;
+            btn.style.color = '';
+        }, 2000);
     }
 
     // Dynamic Fields Logic
