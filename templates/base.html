@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NLPCRM — AI-Powered Intelligence</title>
+    <title>NLPCRM | Neural AI Customer Intelligence</title>
     <meta name="description" content="NLPCRM - Next-gen AI communication intelligence and lead extraction.">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -12,6 +12,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="manifest" href="/manifest.json">
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
     <meta name="theme-color" content="#0a0a0f">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -25,8 +26,13 @@
         <!-- Sidebar -->
         <aside class="sidebar frosted-glass" style="width: 280px; border-radius: 0; border-right: 1px solid var(--glass-border);">
         <div class="sidebar-logo">
-            <svg viewBox="0 0 24 24" width="28" height="28" style="fill:var(--primary);"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path></svg>
-            <span class="logo-text">NLP<strong>CRM</strong></span>
+            <img src="{{ url_for('static', filename='img/logo.png') }}" alt="NLPCRM" style="width: 32px; height: 32px; border-radius: 8px;">
+            <span class="logo-text">NLP<span style="color: var(--primary);">CRM</span></span>
+        </div>
+
+        <div class="ai-status" style="border-bottom: 1px solid rgba(255,255,255,0.05); margin-bottom: 1rem; padding: 0.8rem 1.5rem;">
+            <div class="live-status-pulse"></div>
+            <span style="font-size: 0.7rem; font-weight: 800; letter-spacing: 0.05em; color: var(--text-dim);">NEURAL ENGINE v2.5 ACTIVE</span>
         </div>
 
         <nav class="sidebar-nav">

@@ -16,15 +16,31 @@
         <div class="settings-layout">
             <!-- Left Column: Integrations -->
             <div class="settings-column">
-                <h2 class="section-title"><i class="fas fa-plug"></i> API Integrations</h2>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <h2 class="section-title" style="margin: 0;"><i class="fas fa-plug"></i> Managed Intelligence Channels</h2>
+                    <button type="button" class="btn-micro" onclick="showSourceSelector()" style="background: var(--primary); color: #000; border: none; padding: 0.5rem 1rem; font-weight: 800; border-radius: 8px;">
+                        <i class="fas fa-plus"></i> ADD CHANNEL
+                    </button>
+                </div>
 
-                <!-- NLP Engine -->
-                <div class="card settings-card">
+                <!-- Unified Source Selector Modal (Mock/UI) -->
+                <div id="sourceSelector" class="frosted-glass" style="display: none; margin-bottom: 1.5rem; padding: 1.5rem; border-radius: 16px; border: 1px solid var(--primary); background: rgba(99, 102, 241, 0.1);">
+                    <p style="font-size: 0.8rem; font-weight: 800; color: var(--primary); text-transform: uppercase; margin-bottom: 1rem;">Select Intelligence Source to Configure</p>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem;">
+                        <button type="button" class="source-opt-btn" onclick="scrollToSource('googleCard')"><i class="fab fa-google"></i> Gmail/Meet</button>
+                        <button type="button" class="source-opt-btn" onclick="scrollToSource('whatsappCard')"><i class="fab fa-whatsapp"></i> WhatsApp</button>
+                        <button type="button" class="source-opt-btn" onclick="scrollToSource('zoomCard')"><i class="fas fa-video"></i> Zoom</button>
+                        <button type="button" class="source-opt-btn" onclick="scrollToSource('teamsCard')"><i class="fab fa-microsoft"></i> MS Teams</button>
+                    </div>
+                </div>
+
+                <!-- NLP Engine (Always visible as core) -->
+                <div class="card settings-card" id="nlpCard">
                     <div class="card-header">
                         <div class="icon-wrapper icon-purple"><i class="fas fa-brain"></i></div>
                         <div>
-                            <h3>NLP Engine</h3>
-                            <p class="help-text">Power the AI CRM extraction.</p>
+                            <h3>Neural Core Configuration</h3>
+                            <p class="help-text">Primary AI extraction settings.</p>
                         </div>
                     </div>
                     <div class="card-body">
@@ -51,19 +67,17 @@
                                     settings.get('HF_MODEL')=='meta-llama/Llama-3.2-3B-Instruct' %}selected{% endif %}>
                                     Llama 3.2 3B</option>
                             </select>
-                            <small class="field-hint">Heavier models offer better extraction accuracy but may be
-                                slower.</small>
                         </div>
                     </div>
                 </div>
 
                 <!-- Google Workspace -->
-                <div class="card settings-card">
+                <div class="card settings-card" id="googleCard">
                     <div class="card-header">
                         <div class="icon-wrapper icon-red"><i class="fab fa-google"></i></div>
                         <div>
-                            <h3>Google Workspace</h3>
-                            <p class="help-text">Sync emails and calendar events.</p>
+                            <h3>Google Intelligence</h3>
+                            <p class="help-text">Gmail & Calendar signals.</p>
                         </div>
                     </div>
                     <div class="card-body">
@@ -71,115 +85,66 @@
                             <div>
                                 <span style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.2rem;">Account Status</span>
                                 {% if google_auth_status %}
-                                <span class="badge badge-success" style="padding: 0.4rem 0.8rem; border-radius: 6px; font-weight: 700;"><i class="fas fa-check-circle"></i> Synced</span>
+                                <span class="badge badge-success" style="padding: 0.4rem 0.8rem; border-radius: 6px; font-weight: 700;"><i class="fas fa-check-circle"></i> Connected</span>
                                 {% else %}
-                                <span class="badge badge-secondary" style="padding: 0.4rem 0.8rem; border-radius: 6px; font-weight: 700;"><i class="fas fa-times-circle"></i> Not Synced</span>
+                                <span class="badge badge-secondary" style="padding: 0.4rem 0.8rem; border-radius: 6px; font-weight: 700;"><i class="fas fa-times-circle"></i> Inactive</span>
                                 {% endif %}
                             </div>
                             <a href="{{ url_for('main.google_auth') }}" class="btn btn-secondary" style="font-size: 0.85rem; padding: 0.6rem 1.2rem; border-radius: 8px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: #f87171;">
-                                <i class="fas fa-sync-alt"></i> {% if google_auth_status %}Re-sync Account{% else %}Sync Account{% endif %}
+                                <i class="fas fa-sync-alt"></i> Sync
                             </a>
                         </div>
                         <div class="form-group">
                             <label>OAuth Client ID</label>
-                            <input type="text" name="GOOGLE_CLIENT_ID"
-                                placeholder="your-client-id.apps.googleusercontent.com" class="settings-input"
-                                value="{{ settings.get('GOOGLE_CLIENT_ID', '') }}">
+                            <input type="text" name="GOOGLE_CLIENT_ID" class="settings-input" value="{{ settings.get('GOOGLE_CLIENT_ID', '') }}">
                         </div>
                         <div class="form-group">
                             <label>OAuth Client Secret</label>
                             <div class="input-with-icon">
-                                <input type="password" id="gClientSecret" name="GOOGLE_CLIENT_SECRET"
-                                    placeholder="GOCSPX-xxxxxxxxxxxxxxxxx" class="settings-input"
-                                    value="{{ settings.get('GOOGLE_CLIENT_SECRET', '') }}">
-                                <button type="button" class="visibility-toggle"
-                                    onclick="toggleVisibility('gClientSecret', this)"><i
-                                        class="fas fa-eye"></i></button>
-                            </div>
-                        </div>
-
-                        <!-- NEW: Redirect URI Helper -->
-                        <div class="form-group" style="margin-top: 1.5rem; padding: 1rem; background: rgba(59, 130, 246, 0.05); border: 1px dashed rgba(59, 130, 246, 0.3); border-radius: 12px;">
-                            <label style="color: var(--primary); font-size: 0.75rem;"><i class="fas fa-info-circle"></i> Google Console Configuration</label>
-                            <p style="font-size: 0.8rem; color: var(--text-dim); margin-bottom: 0.8rem;">Copy this URL into <b>Authorized redirect URIs</b> in Google Cloud:</p>
-                            <div class="input-with-icon">
-                                <input type="text" id="authRedirectUri" readonly class="settings-input" style="font-family: monospace; font-size: 0.8rem; background: rgba(0,0,0,0.4);" 
-                                       value="{{ url_for('main.google_callback', _external=True) }}">
-                                <button type="button" class="visibility-toggle" onclick="copyToClipboard('authRedirectUri', this)"><i class="fas fa-copy"></i></button>
+                                <input type="password" id="gClientSecret" name="GOOGLE_CLIENT_SECRET" class="settings-input" value="{{ settings.get('GOOGLE_CLIENT_SECRET', '') }}">
+                                <button type="button" class="visibility-toggle" onclick="toggleVisibility('gClientSecret', this)"><i class="fas fa-eye"></i></button>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- WhatsApp -->
-                <div class="card settings-card">
+                <div class="card settings-card" id="whatsappCard">
                     <div class="card-header">
                         <div class="icon-wrapper icon-green"><i class="fab fa-whatsapp"></i></div>
                         <div>
-                            <h3>WhatsApp Business</h3>
-                            <p class="help-text">Automate lead capture from incoming messages.</p>
+                            <h3>WhatsApp Config</h3>
+                            <p class="help-text">Mobile lead ingestion.</p>
                         </div>
                     </div>
                     <div class="card-body">
                         <div class="form-group">
-                            <label>Permanent Access Token</label>
-                            <div class="input-with-icon">
-                                <input type="password" id="waApiKey" name="WHATSAPP_API_KEY" placeholder="EAAxxxxxxx"
-                                    class="settings-input" value="{{ settings.get('WHATSAPP_API_KEY', '') }}">
-                                <button type="button" class="visibility-toggle"
-                                    onclick="toggleVisibility('waApiKey', this)"><i class="fas fa-eye"></i></button>
-                            </div>
+                            <label>Access Token</label>
+                            <input type="password" id="waApiKey" name="WHATSAPP_API_KEY" class="settings-input" value="{{ settings.get('WHATSAPP_API_KEY', '') }}">
                         </div>
                         <div class="form-group">
-                            <label>Webhook Verification Token</label>
-                            <input type="text" name="WHATSAPP_WEBHOOK" placeholder="Custom verification token"
-                                class="settings-input" value="{{ settings.get('WHATSAPP_WEBHOOK', '') }}">
+                            <label>Verify Token</label>
+                            <input type="text" name="WHATSAPP_WEBHOOK" class="settings-input" value="{{ settings.get('WHATSAPP_WEBHOOK', '') }}">
                         </div>
                     </div>
                 </div>
 
-                <!-- Zoom Meetings -->
-                <div class="card settings-card">
+                <!-- Additional Sources (Zoom/Teams) collapsed by default or simplified -->
+                <div class="card settings-card" id="zoomCard">
                     <div class="card-header">
                         <div class="icon-wrapper icon-blue"><i class="fas fa-video"></i></div>
                         <div>
-                            <h3>Zoom Meetings</h3>
-                            <p class="help-text">Configure Webhook to ingest transcripts automatically.</p>
+                            <h3>Meeting Intelligence (Zoom/Teams)</h3>
                         </div>
                     </div>
                     <div class="card-body">
                         <div class="form-group">
-                            <label>Zoom Webhook Secret Token</label>
-                            <div class="input-with-icon">
-                                <input type="password" id="zoomSecret" name="ZOOM_WEBHOOK_SECRET"
-                                    placeholder="Your Secret Token" class="settings-input"
-                                    value="{{ settings.get('ZOOM_WEBHOOK_SECRET', '') }}">
-                                <button type="button" class="visibility-toggle"
-                                    onclick="toggleVisibility('zoomSecret', this)"><i class="fas fa-eye"></i></button>
-                            </div>
+                            <label>Zoom Webhook Secret</label>
+                            <input type="password" name="ZOOM_WEBHOOK_SECRET" class="settings-input" value="{{ settings.get('ZOOM_WEBHOOK_SECRET', '') }}">
                         </div>
-                    </div>
-                </div>
-
-                <!-- Microsoft Teams -->
-                <div class="card settings-card">
-                    <div class="card-header">
-                        <div class="icon-wrapper icon-purple"><i class="fab fa-microsoft"></i></div>
-                        <div>
-                            <h3>Microsoft Teams</h3>
-                            <p class="help-text">Extract insights from MS Teams meetings.</p>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="form-group">
-                            <label>Bot/App Secret</label>
-                            <div class="input-with-icon">
-                                <input type="password" id="teamsSecret" name="TEAMS_APP_SECRET"
-                                    placeholder="MS Teams App Secret" class="settings-input"
-                                    value="{{ settings.get('TEAMS_APP_SECRET', '') }}">
-                                <button type="button" class="visibility-toggle"
-                                    onclick="toggleVisibility('teamsSecret', this)"><i class="fas fa-eye"></i></button>
-                            </div>
+                        <div class="form-group" id="teamsCard">
+                            <label>Teams App Secret</label>
+                            <input type="password" name="TEAMS_APP_SECRET" class="settings-input" value="{{ settings.get('TEAMS_APP_SECRET', '') }}">
                         </div>
                     </div>
                 </div>
@@ -201,8 +166,8 @@
                     <div class="card-body">
                         <div class="form-group" style="margin-bottom: 2rem;">
                             <label>Display Name</label>
-                            <input type="text" name="USER_NAME" placeholder="Aman Varma" class="settings-input"
-                                value="{{ settings.get('USER_NAME', 'Aman Varma') }}">
+                            <input type="text" name="ADMIN_NAME" placeholder="Aman Varma" class="settings-input"
+                                value="{{ settings.get('ADMIN_NAME', 'Aman Varma') }}">
                             <small class="field-hint">This name will appear in the sidebar and communication outgoing headers.</small>
                         </div>
 
@@ -213,9 +178,9 @@
 
                         <div class="dynamic-group">
                             <div class="dynamic-header">
-                                <label>Secondary Emails</label>
+                                <label>Connected Email Accounts</label>
                                 <button type="button" class="btn-micro" onclick="addEmailField('settingsEmailList')"><i
-                                        class="fas fa-plus"></i> Add</button>
+                                        class="fas fa-plus"></i> Add Email</button>
                             </div>
                             <div id="settingsEmailList" class="dynamic-list"></div>
                         </div>
@@ -556,6 +521,25 @@
         }
     }
 
+    function showSourceSelector() {
+        const selector = document.getElementById('sourceSelector');
+        selector.style.display = selector.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function scrollToSource(cardId) {
+        const card = document.getElementById(cardId);
+        if (card) {
+            document.getElementById('sourceSelector').style.display = 'none';
+            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // Add a brief highlight effect
+            card.style.transition = 'box-shadow 0.3s';
+            card.style.boxShadow = '0 0 30px rgba(99, 102, 241, 0.6)';
+            setTimeout(() => {
+                card.style.boxShadow = '';
+            }, 1500);
+        }
+    }
+
     const initialEmails = safeParse(document.getElementById('userEmailsInput').value);
     const initialSocials = safeParse(document.getElementById('userSocialsInput').value);
 
@@ -577,8 +561,19 @@
         valueInput.type = isEmail ? 'email' : 'text';
         valueInput.placeholder = valuePlaceholder;
         valueInput.className = 'settings-input dynamic-value';
-        valueInput.style.flex = '2';
+        valueInput.style.flex = '1.5';
         valueInput.value = data.value || '';
+
+        let configInput = null;
+        if (isEmail) {
+            configInput = document.createElement('input');
+            configInput.type = 'text';
+            configInput.placeholder = 'IMAP/App Password (Config)';
+            configInput.className = 'settings-input dynamic-config';
+            configInput.style.flex = '1.5';
+            configInput.value = data.config || '';
+            configInput.addEventListener('input', triggerUnsaved);
+        }
 
         const removeBtn = document.createElement('button');
         removeBtn.type = 'button';
@@ -597,6 +592,7 @@
 
         row.appendChild(labelInput);
         row.appendChild(valueInput);
+        if (configInput) row.appendChild(configInput);
         row.appendChild(removeBtn);
         container.appendChild(row);
     }
@@ -647,7 +643,8 @@
         document.getElementById('settingsEmailList').querySelectorAll('div').forEach(row => {
             const label = row.querySelector('.dynamic-label')?.value.trim();
             const value = row.querySelector('.dynamic-value')?.value.trim();
-            if (label || value) emails.push({ label, value });
+            const config = row.querySelector('.dynamic-config')?.value.trim();
+            if (label || value) emails.push({ label, value, config });
         });
         document.getElementById('userEmailsInput').value = JSON.stringify(emails);
 

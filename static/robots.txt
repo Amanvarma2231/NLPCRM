@@ -1,0 +1,8 @@
+User-agent: *
+Disallow: /activity
+Disallow: /contacts
+Disallow: /settings
+Disallow: /google/callback
+Allow: /static
+Allow: /login
+Allow: /
