@@ -35,10 +35,11 @@ def create_app():
         return response
     
     with app.app_context():
-        from app.routes.main import zoom_webhook, whatsapp_webhook, teams_webhook
+        from app.routes.main import zoom_webhook, whatsapp_webhook, teams_webhook, email_test_connection
         csrf.exempt(zoom_webhook)
         csrf.exempt(whatsapp_webhook)
         csrf.exempt(teams_webhook)
+        csrf.exempt(email_test_connection)
     
     # Content Security Policy for Talisman
     csp = {

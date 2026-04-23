@@ -6,7 +6,7 @@ from flask import Blueprint, render_template, request, jsonify, redirect, url_fo
 
 from app.services.db_service import db_service
 from app.services.nlp_service import nlp_service
-from app.services.gmail_service import google_service
+from app.services.email_service import email_service
 from app.services.whatsapp_service import whatsapp_service
 from app.services.contact_service import contact_service
 
@@ -260,25 +260,25 @@ def sync_all():
     except Exception as e:
         logger.error(f"WhatsApp Sync Error: {e}")
 
-    # 2. Pull Gmail (Real API Attempt if Auth exists)
-    if google_service.is_authenticated():
+    # 2. Pull Email inbox via POP3
+    if email_service.is_configured():
         try:
-            gmail_messages = google_service.fetch_gmail_messages(max_results=5) or []
-            for m in gmail_messages:
+            inbox_messages = email_service.fetch_emails(max_count=5) or []
+            for m in inbox_messages:
                 text = m.get('text', '')
                 if len(text) > 10:
-                    extracted = nlp_service.extract_contact_info(text, source='Gmail')
+                    extracted = nlp_service.extract_contact_info(text, source='Email')
                     json_data = _parse_json_from_llm(extracted)
                     if json_data and (json_data.get('email') or json_data.get('phone')):
                         contact_service.add_contact(json_data)
                         results.append(json_data)
         except Exception as e:
-            logger.error(f"Gmail Sync Error: {e}")
+            logger.error(f"Email Sync Error: {e}")
     
     return jsonify({
         "success": True, 
         "synced_count": len(results),
-        "gmail_active": google_service.is_authenticated()
+        "email_active": email_service.is_configured()
     })
 
 @main_bp.route("/settings", methods=["GET", "POST"])
@@ -290,8 +290,8 @@ def settings():
                 db_service.save_setting(key, val)
         return redirect(url_for('main.settings'))
     current_settings = db_service.get_settings()
-    google_auth_status = google_service.is_authenticated()
-    return render_template("settings.html", settings=current_settings, google_auth_status=google_auth_status)
+    email_configured = email_service.is_configured()
+    return render_template("settings.html", settings=current_settings, email_configured=email_configured)
 
 @main_bp.route("/integrations")
 @login_required
@@ -401,21 +401,21 @@ def ai_assistant_query():
 
 # --- NEW: DEDICATED SOURCE PAGES ---
 
-@main_bp.route("/sources/gmail")
+@main_bp.route("/sources/email")
 @login_required
-def source_gmail():
+def source_email():
     contacts = contact_service.get_contacts()
-    gmail_signals = [c for c in contacts if (c.get('source') or '').lower() == 'gmail']
-    messages = google_service.fetch_gmail_messages(max_results=10) if google_service.is_authenticated() else []
+    email_signals = [c for c in contacts if (c.get('source') or '').lower() in ['email', 'email (pop3)', 'gmail']]
+    messages = email_service.fetch_emails(max_count=10) if email_service.is_configured() else []
     
     return render_template("source_view.html", 
-                           source_name="Gmail",
-                           source_id="google",
-                           brand_color="#ea4335",
-                           signals=gmail_signals,
+                           source_name="Email (SMTP/POP3)",
+                           source_id="email",
+                           brand_color="#6366f1",
+                           signals=email_signals,
                            messages=messages,
-                           icon="fab fa-google",
-                           is_connected=google_service.is_authenticated())
+                           icon="fas fa-envelope",
+                           is_connected=email_service.is_configured())
 
 @main_bp.route("/sources/whatsapp")
 @login_required
@@ -472,30 +472,41 @@ def pipeline():
 def ai_engine():
     return render_template("ai_engine.html")
 
-@main_bp.route("/google-auth")
-@login_required
-def google_auth():
-    redirect_uri = url_for('main.google_callback', _external=True)
-    logger.info(f"Initiating Google Auth with Redirect URI: {redirect_uri}")
-    auth_url, state = google_service.get_auth_url(redirect_uri)
-    session['google_auth_state'] = state
-    return redirect(auth_url)
+# --- EMAIL (SMTP/POP3) TEST & SEND ROUTES ---
 
-@main_bp.route("/google/callback")
-def google_callback():
-    state = session.get('google_auth_state')
-    logger.info(f"Received Google Auth Callback. State in session: {'Yes' if state else 'No'}")
-    if not state:
-        return redirect(url_for('main.settings', error="State mismatch in Google Auth."))
-    
-    redirect_uri = url_for('main.google_callback', _external=True)
-    logger.info(f"Fetching Token with Redirect URI: {redirect_uri}")
-    try:
-        google_service.fetch_token(request.url, state, redirect_uri)
-        return redirect(url_for('main.settings', success="Google account connected successfully!"))
-    except Exception as e:
-        logger.error(f"Google Auth Callback Failed: {e}")
-        return redirect(url_for('main.settings', error=f"Auth failed: {str(e)}"))
+@main_bp.route("/email/test-connection", methods=["POST"])
+@login_required
+def email_test_connection():
+    """Test both SMTP and POP3 connections and return status."""
+    smtp_ok, smtp_msg = email_service.test_smtp_connection()
+    pop3_ok, pop3_msg = email_service.test_pop3_connection()
+    return jsonify({
+        "smtp": {"ok": smtp_ok, "message": smtp_msg},
+        "pop3": {"ok": pop3_ok, "message": pop3_msg}
+    })
+
+@main_bp.route("/email/send", methods=["POST"])
+@login_required
+def send_email_route():
+    """Send an email via SMTP."""
+    data = request.get_json(silent=True) or {}
+    to_email = data.get("to")
+    subject  = data.get("subject", "(No Subject)")
+    body     = data.get("body", "")
+
+    if not to_email:
+        return jsonify({"success": False, "error": "Recipient email is required."}), 400
+
+    ok, msg = email_service.send_email(to_email, subject, body)
+    return jsonify({"success": ok, "message": msg})
+
+@main_bp.route("/email/inbox", methods=["GET"])
+@login_required
+def email_inbox():
+    """Fetch inbox emails via POP3."""
+    max_count = int(request.args.get("max", 10))
+    messages = email_service.fetch_emails(max_count=max_count)
+    return jsonify({"success": True, "count": len(messages), "messages": messages})
 
 # --- STATIC & SYSTEM ---
 

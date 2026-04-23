@@ -27,7 +27,7 @@
                 <div id="sourceSelector" class="frosted-glass" style="display: none; margin-bottom: 1.5rem; padding: 1.5rem; border-radius: 16px; border: 1px solid var(--primary); background: rgba(99, 102, 241, 0.1);">
                     <p style="font-size: 0.8rem; font-weight: 800; color: var(--primary); text-transform: uppercase; margin-bottom: 1rem;">Select Intelligence Source to Configure</p>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem;">
-                        <button type="button" class="source-opt-btn" onclick="scrollToSource('googleCard')"><i class="fab fa-google"></i> Gmail/Meet</button>
+                        <button type="button" class="source-opt-btn" onclick="scrollToSource('emailCard')"><i class="fas fa-envelope"></i> Email (SMTP/POP3)</button>
                         <button type="button" class="source-opt-btn" onclick="scrollToSource('whatsappCard')"><i class="fab fa-whatsapp"></i> WhatsApp</button>
                         <button type="button" class="source-opt-btn" onclick="scrollToSource('zoomCard')"><i class="fas fa-video"></i> Zoom</button>
                         <button type="button" class="source-opt-btn" onclick="scrollToSource('teamsCard')"><i class="fab fa-microsoft"></i> MS Teams</button>
@@ -71,38 +71,87 @@
                     </div>
                 </div>
 
-                <!-- Google Workspace -->
-                <div class="card settings-card" id="googleCard">
+                <!-- Email SMTP / POP3 -->
+                <div class="card settings-card" id="emailCard">
                     <div class="card-header">
-                        <div class="icon-wrapper icon-red"><i class="fab fa-google"></i></div>
+                        <div class="icon-wrapper icon-indigo"><i class="fas fa-envelope"></i></div>
                         <div>
-                            <h3>Google Intelligence</h3>
-                            <p class="help-text">Gmail & Calendar signals.</p>
+                            <h3>Email Integration (SMTP / POP3)</h3>
+                            <p class="help-text">Send and receive emails — no OAuth required.</p>
                         </div>
                     </div>
                     <div class="card-body">
+                        <!-- Connection Status Badge -->
                         <div style="margin-bottom: 1.5rem; padding: 1rem; background: rgba(0,0,0,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: space-between;">
                             <div>
                                 <span style="display: block; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-bottom: 0.2rem;">Account Status</span>
-                                {% if google_auth_status %}
-                                <span class="badge badge-success" style="padding: 0.4rem 0.8rem; border-radius: 6px; font-weight: 700;"><i class="fas fa-check-circle"></i> Connected</span>
+                                {% if email_configured %}
+                                <span class="badge badge-success" style="padding: 0.4rem 0.8rem; border-radius: 6px; font-weight: 700;"><i class="fas fa-check-circle"></i> Configured</span>
                                 {% else %}
-                                <span class="badge badge-secondary" style="padding: 0.4rem 0.8rem; border-radius: 6px; font-weight: 700;"><i class="fas fa-times-circle"></i> Inactive</span>
+                                <span class="badge badge-secondary" style="padding: 0.4rem 0.8rem; border-radius: 6px; font-weight: 700;"><i class="fas fa-times-circle"></i> Not Configured</span>
                                 {% endif %}
                             </div>
-                            <a href="{{ url_for('main.google_auth') }}" class="btn btn-secondary" style="font-size: 0.85rem; padding: 0.6rem 1.2rem; border-radius: 8px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: #f87171;">
-                                <i class="fas fa-sync-alt"></i> Sync
-                            </a>
+                            <button type="button" id="testEmailBtn" onclick="testEmailConnection()" class="btn btn-secondary" style="font-size: 0.85rem; padding: 0.6rem 1.2rem; border-radius: 8px; background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.3); color: #818cf8;">
+                                <i class="fas fa-plug"></i> Test Connection
+                            </button>
+                        </div>
+                        <!-- Connection Test Result -->
+                        <div id="emailTestResult" style="display:none; margin-bottom:1rem; padding: 0.8rem 1rem; border-radius: 10px; font-size: 0.85rem; font-weight: 600;"></div>
+
+                        <p style="font-size: 0.8rem; font-weight: 800; color: var(--primary); text-transform: uppercase; margin-bottom: 0.8rem; margin-top: 0.5rem;">📤 SMTP — Outgoing Mail</p>
+                        <div class="form-group">
+                            <label>SMTP Host</label>
+                            <input type="text" name="SMTP_HOST" class="settings-input" placeholder="smtp.gmail.com" value="{{ settings.get('SMTP_HOST', 'smtp.gmail.com') }}">
+                            <small class="field-hint">For Gmail: smtp.gmail.com | Outlook: smtp.office365.com</small>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div class="form-group">
+                                <label>SMTP Port</label>
+                                <input type="number" name="SMTP_PORT" class="settings-input" placeholder="587" value="{{ settings.get('SMTP_PORT', '587') }}">
+                                <small class="field-hint">587 (TLS) or 465 (SSL)</small>
+                            </div>
+                            <div class="form-group">
+                                <label>Use TLS (STARTTLS)</label>
+                                <select name="SMTP_USE_TLS" class="settings-input">
+                                    <option value="true" {% if settings.get('SMTP_USE_TLS', 'true') == 'true' %}selected{% endif %}>Yes — Port 587</option>
+                                    <option value="false" {% if settings.get('SMTP_USE_TLS') == 'false' %}selected{% endif %}>No — SSL (Port 465)</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="form-group">
-                            <label>OAuth Client ID</label>
-                            <input type="text" name="GOOGLE_CLIENT_ID" class="settings-input" value="{{ settings.get('GOOGLE_CLIENT_ID', '') }}">
+                            <label>SMTP Username (Email)</label>
+                            <input type="email" name="SMTP_USER" class="settings-input" placeholder="you@gmail.com" value="{{ settings.get('SMTP_USER', '') }}">
                         </div>
                         <div class="form-group">
-                            <label>OAuth Client Secret</label>
+                            <label>SMTP Password / App Password</label>
                             <div class="input-with-icon">
-                                <input type="password" id="gClientSecret" name="GOOGLE_CLIENT_SECRET" class="settings-input" value="{{ settings.get('GOOGLE_CLIENT_SECRET', '') }}">
-                                <button type="button" class="visibility-toggle" onclick="toggleVisibility('gClientSecret', this)"><i class="fas fa-eye"></i></button>
+                                <input type="password" id="smtpPass" name="SMTP_PASSWORD" class="settings-input" placeholder="App password or email password" value="{{ settings.get('SMTP_PASSWORD', '') }}">
+                                <button type="button" class="visibility-toggle" onclick="toggleVisibility('smtpPass', this)"><i class="fas fa-eye"></i></button>
+                            </div>
+                            <small class="field-hint">For Gmail, use an <a href="https://myaccount.google.com/apppasswords" target="_blank" style="color:var(--primary)">App Password</a> (requires 2FA enabled).</small>
+                        </div>
+
+                        <hr style="border-color: rgba(255,255,255,0.05); margin: 1.5rem 0;">
+                        <p style="font-size: 0.8rem; font-weight: 800; color: var(--primary); text-transform: uppercase; margin-bottom: 0.8rem;">📥 POP3 — Incoming Mail</p>
+                        <div class="form-group">
+                            <label>POP3 Host</label>
+                            <input type="text" name="POP3_HOST" class="settings-input" placeholder="pop.gmail.com" value="{{ settings.get('POP3_HOST', 'pop.gmail.com') }}">
+                            <small class="field-hint">For Gmail: pop.gmail.com | Outlook: outlook.office365.com</small>
+                        </div>
+                        <div class="form-group">
+                            <label>POP3 Port</label>
+                            <input type="number" name="POP3_PORT" class="settings-input" placeholder="995" value="{{ settings.get('POP3_PORT', '995') }}">
+                            <small class="field-hint">995 (SSL — standard for POP3)</small>
+                        </div>
+                        <div class="form-group">
+                            <label>POP3 Username (Email)</label>
+                            <input type="email" name="POP3_USER" class="settings-input" placeholder="you@gmail.com" value="{{ settings.get('POP3_USER', '') }}">
+                        </div>
+                        <div class="form-group">
+                            <label>POP3 Password / App Password</label>
+                            <div class="input-with-icon">
+                                <input type="password" id="pop3Pass" name="POP3_PASSWORD" class="settings-input" placeholder="App password or email password" value="{{ settings.get('POP3_PASSWORD', '') }}">
+                                <button type="button" class="visibility-toggle" onclick="toggleVisibility('pop3Pass', this)"><i class="fas fa-eye"></i></button>
                             </div>
                         </div>
                     </div>
@@ -334,6 +383,11 @@
         color: #4ade80;
     }
 
+    .icon-indigo {
+        background: rgba(99, 102, 241, 0.15);
+        color: #818cf8;
+    }
+
     .icon-blue {
         background: rgba(59, 130, 246, 0.15);
         color: #60a5fa;
@@ -538,6 +592,39 @@
                 card.style.boxShadow = '';
             }, 1500);
         }
+    }
+
+    async function testEmailConnection() {
+        const btn = document.getElementById('testEmailBtn');
+        const result = document.getElementById('emailTestResult');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing...';
+        result.style.display = 'none';
+        try {
+            const res = await fetch('/email/test-connection', {
+                method: 'POST',
+                headers: { 'X-CSRFToken': document.querySelector('[name=csrf_token]')?.value || '' }
+            });
+            const data = await res.json();
+            const smtpStatus = data.smtp?.ok ? '✅ SMTP OK' : '❌ SMTP Failed';
+            const pop3Status = data.pop3?.ok ? '✅ POP3 OK' : '❌ POP3 Failed';
+            const smtpMsg = data.smtp?.message || '';
+            const pop3Msg = data.pop3?.message || '';
+            const allOk = data.smtp?.ok && data.pop3?.ok;
+            result.style.display = 'block';
+            result.style.background = allOk ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)';
+            result.style.border = allOk ? '1px solid rgba(34,197,94,0.3)' : '1px solid rgba(239,68,68,0.3)';
+            result.style.color = allOk ? '#4ade80' : '#f87171';
+            result.innerHTML = `${smtpStatus}: ${smtpMsg}<br>${pop3Status}: ${pop3Msg}`;
+        } catch(e) {
+            result.style.display = 'block';
+            result.style.background = 'rgba(239,68,68,0.1)';
+            result.style.border = '1px solid rgba(239,68,68,0.3)';
+            result.style.color = '#f87171';
+            result.textContent = 'Connection test failed: ' + e.message;
+        }
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-plug"></i> Test Connection';
     }
 
     const initialEmails = safeParse(document.getElementById('userEmailsInput').value);
