@@ -297,7 +297,8 @@ def settings():
 @login_required
 def integrations():
     settings = db_service.get_settings()
-    return render_template("integrations.html", settings=settings)
+    email_configured = email_service.is_configured()
+    return render_template("integrations.html", settings=settings, email_configured=email_configured)
 
 @main_bp.route("/webhooks/zoom", methods=["POST"])
 def zoom_webhook():

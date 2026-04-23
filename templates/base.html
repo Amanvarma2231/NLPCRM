@@ -49,8 +49,8 @@
 
             <div class="nav-section">
                 <span class="nav-section-label">Sources</span>
-                <a href="{{ url_for('main.source_gmail') }}" class="nav-link {% if request.endpoint == 'main.source_gmail' %}active{% endif %}">
-                    <i class="fab fa-google"></i><span>Gmail Inbox</span>
+                <a href="{{ url_for('main.source_email') }}" class="nav-link {% if request.endpoint == 'main.source_email' %}active{% endif %}">
+                    <i class="fas fa-envelope"></i><span>Email Inbox</span>
                 </a>
                 <a href="{{ url_for('main.source_whatsapp') }}" class="nav-link {% if request.endpoint == 'main.source_whatsapp' %}active{% endif %}">
                     <i class="fab fa-whatsapp"></i><span>WhatsApp Business</span>

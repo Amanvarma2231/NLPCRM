@@ -25,11 +25,11 @@ def migrate():
         "extra": "TEXT"
     }
 
-    for col, type in columns_to_add.items():
+    for col, col_type in columns_to_add.items():
         if col not in columns:
             print(f"Adding column {col}...")
             try:
-                cursor.execute(f"ALTER TABLE contacts ADD COLUMN {col} {type}")
+                cursor.execute(f"ALTER TABLE contacts ADD COLUMN {col} {col_type}")
                 print(f"Added column {col}")
             except Exception as e:
                 print(f"Failed to add {col}: {e}")
