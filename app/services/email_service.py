@@ -93,8 +93,12 @@ class EmailService:
             server.quit()
             return True, f"POP3 connection OK — {msg_count} message(s) on server."
         except Exception as e:
+            error_str = str(e)
+            if "not enabled for POP access" in error_str:
+                return False, "POP3 is disabled in your Gmail settings. Please enable it in Gmail > Settings > Forwarding and POP/IMAP."
             logger.error(f"POP3 test failed: {e}")
-            return False, str(e)
+            return False, error_str
+
 
     # ------------------------------------------------------------------ #
     #  Sending                                                              #
@@ -191,8 +195,13 @@ class EmailService:
             return messages
 
         except Exception as e:
-            logger.error(f"POP3 fetch failed: {e}")
+            error_str = str(e)
+            if "not enabled for POP access" in error_str:
+                logger.error("POP3 fetch failed: POP access is not enabled in Gmail settings.")
+            else:
+                logger.error(f"POP3 fetch failed: {e}")
             return []
+
 
     def _extract_body(self, msg) -> str:
         """Extract plain-text body from an email.Message object."""

@@ -102,5 +102,69 @@
         </div>
         {% endif %}
     </div>
+    <!-- Source Inbox Feed (New) -->
+    {% if messages %}
+    <div style="background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:20px;overflow:hidden;margin-top:2.5rem;">
+        <div style="padding:1.2rem 1.5rem;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+            <h3 style="font-size:1rem;font-weight:700;color:white;display:flex;align-items:center;gap:0.6rem;">
+                <i class="fas fa-inbox" style="color:var(--primary);"></i> Source Inbox
+            </h3>
+            <span style="font-size:0.75rem;color:var(--text-dim);font-weight:600;">Recent {{ messages|length }} messages</span>
+        </div>
+        <div style="display:flex;flex-direction:column;">
+            {% for msg in messages %}
+            <div style="padding:1.2rem 1.5rem;border-bottom:1px solid rgba(255,255,255,0.03);position:relative;">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.6rem;">
+                    <div style="font-weight:700;color:white;font-size:0.95rem;">{{ msg.subject or '(No Subject)' }}</div>
+                    <div style="font-size:0.75rem;color:var(--text-muted);font-weight:600;">{{ msg.from or 'Unknown' }}</div>
+                </div>
+                <div style="font-size:0.85rem;color:var(--text-dim);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:0.8rem;">
+                    {{ msg.snippet or msg.text[:200] }}
+                </div>
+                <button onclick="extractFromMsg({{ msg|tojson|safe }})" style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.4rem 0.8rem;background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.2);border-radius:6px;font-size:0.72rem;font-weight:700;color:#818cf8;cursor:pointer;">
+                    <i class="fas fa-magic"></i> AI Extract
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
 </div>
+
+<script>
+    async function extractFromMsg(msg) {
+        const text = msg.text || msg.snippet;
+        if (!text) return;
+        
+        const btn = event.currentTarget;
+        const originalHtml = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+        
+        try {
+            const res = await fetch('/process-text', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrf_token]')?.value || ''
+                },
+                body: JSON.stringify({ text: text })
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert('Contact extracted successfully and added to your directory!');
+                window.location.reload();
+            } else {
+                alert('Extraction failed: ' + data.error);
+            }
+        } catch (e) {
+            alert('Error processing extraction: ' + e.message);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+        }
+    }
+</script>
 {% endblock %}
+
+
