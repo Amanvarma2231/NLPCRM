@@ -1,8 +1,8 @@
 import requests
 
 def test_email_connection():
-    login_url = "http://localhost:5000/login"
-    test_url = "http://localhost:5000/email/test-connection"
+    login_url = "http://127.0.0.1:5000/login"
+    test_url = "http://127.0.0.1:5000/email/test-connection"
     
     session = requests.Session()
     
@@ -30,7 +30,11 @@ def test_email_connection():
         "password": "admin@2026",
         "csrf_token": csrf_token
     }
-    login_resp = session.post(login_url, data=login_data, allow_redirects=True)
+    headers = {
+        "X-CSRFToken": csrf_token,
+        "Referer": login_url
+    }
+    login_resp = session.post(login_url, data=login_data, headers=headers, allow_redirects=True)
     
     if login_resp.status_code == 200:
         print(f"Login request finished. Final URL: {login_resp.url}")
