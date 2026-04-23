@@ -44,10 +44,10 @@ def validate_system():
 
     # 3. Connection Configuration Check
     print("[3/4] Checking Connection Configs...")
-    from app.services.gmail_service import google_service
+    from app.services.email_service import email_service
     from app.services.whatsapp_service import whatsapp_service
     
-    print(f"  - Gmail Setup: {'READY' if google_service.is_configured() else 'INCOMPLETE'}")
+    print(f"  - Email (SMTP/POP3) Setup: {'READY' if email_service.is_configured() else 'INCOMPLETE'}")
     print(f"  - WhatsApp Setup: {'READY' if whatsapp_service.api_key and whatsapp_service.phone_id else 'INCOMPLETE'}")
 
     # 4. System Health & PWA Check
