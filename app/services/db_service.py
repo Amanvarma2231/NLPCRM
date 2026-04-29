@@ -196,8 +196,7 @@ class DBService:
     def add_contact(self, contact_data):
         """DEPRECATED: Use ContactService.add_contact for v2 schema support."""
         logger.warning("DBService.add_contact is deprecated. Use ContactService.add_contact instead.")
-        if not self._connect(): return None
-        # ... (keeping implementation for backward compatibility if needed, but steering away)
+        return None  # Intentionally not implemented — use contact_service.add_contact()
 
     def get_contacts(self):
         if not self._connect(): return []

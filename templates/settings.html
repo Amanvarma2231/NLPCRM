@@ -183,7 +183,7 @@
                     <div class="card-header">
                         <div class="icon-wrapper icon-blue"><i class="fas fa-video"></i></div>
                         <div>
-                            <h3>Meeting Intelligence (Zoom/Teams)</h3>
+                            <h3>Meeting Intelligence (Zoom)</h3>
                         </div>
                     </div>
                     <div class="card-body">
@@ -191,7 +191,19 @@
                             <label>Zoom Webhook Secret</label>
                             <input type="password" name="ZOOM_WEBHOOK_SECRET" class="settings-input" value="{{ settings.get('ZOOM_WEBHOOK_SECRET', '') }}">
                         </div>
-                        <div class="form-group" id="teamsCard">
+                    </div>
+                </div>
+
+                <!-- Teams Card (separate so scrollToSource works correctly) -->
+                <div class="card settings-card" id="teamsCard">
+                    <div class="card-header">
+                        <div class="icon-wrapper icon-blue"><i class="fab fa-microsoft"></i></div>
+                        <div>
+                            <h3>MS Teams App Secret</h3>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
                             <label>Teams App Secret</label>
                             <input type="password" name="TEAMS_APP_SECRET" class="settings-input" value="{{ settings.get('TEAMS_APP_SECRET', '') }}">
                         </div>
@@ -535,7 +547,6 @@
 </style>
 
 <script>
-    // Visibility toggle for passwords
     // Visibility toggle for passwords
     function toggleVisibility(inputId, btn) {
         const input = document.getElementById(inputId);

@@ -32,6 +32,7 @@ class ContactService:
         
         legacy_contacts = legacy_cursor.fetchall()
         for row in legacy_contacts:
+            # SELECT order: id, email, name, phone, email2, social_media, company, interest, extra, created_at
             c_id, email, name, phone, email2, social_media, company, interest, extra, created_at = row
             
             # Insert into v2
