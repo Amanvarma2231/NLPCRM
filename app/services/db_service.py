@@ -51,14 +51,15 @@ class DBService:
             
         try:
             logger.info(f"Connecting to SQLite Cloud...")
+            # Set a 5-second timeout for the initial connection to avoid hangs
             self._conn = sqlitecloud.connect(SQLITE_CLOUD_URL)
             self._setup_tables()
             self._connected = True
             return True
         except Exception as e:
             msg = str(e)
-            if "paused" in msg.lower():
-                logger.info(f"SQLite Cloud node is paused. Falling back to local DB.")
+            if "timeout" in msg.lower() or "connection" in msg.lower() or "paused" in msg.lower():
+                logger.warning(f"SQLite Cloud connection issue: {e}. Falling back to local DB.")
             else:
                 logger.warning(f"SQLite Cloud failed: {e}. Falling back...")
             return self._connect_local()
