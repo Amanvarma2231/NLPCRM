@@ -62,10 +62,10 @@
                     {% for contact in recent_contacts %}
                     <div class="frosted-glass insight-card" onclick='viewContact({{ contact|tojson|safe }})' style="padding: 1.8rem; border-radius: 20px; display: flex; align-items: center; gap: 1.5rem; cursor: pointer; transition: all 0.3s ease;">
                         <div style="width: 60px; height: 60px; border-radius: 16px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-sm);">
-                            {% if contact.source|lower == 'whatsapp' %}
+                            {% if 'whatsapp' in contact.source|lower %}
                                 <i class="fab fa-whatsapp" style="color: #22c55e; font-size: 1.5rem;"></i>
-                            {% elif contact.source|lower == 'gmail' %}
-                                <i class="fab fa-google" style="color: #ea4335; font-size: 1.5rem;"></i>
+                            {% elif 'email' in contact.source|lower or 'gmail' in contact.source|lower %}
+                                <i class="fas fa-envelope" style="color: #6366f1; font-size: 1.5rem;"></i>
                             {% else %}
                                 <i class="fab fa-microsoft" style="color: #0ea5e9; font-size: 1.5rem;"></i>
                             {% endif %}

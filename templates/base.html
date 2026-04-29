@@ -293,8 +293,41 @@
                     <p id="viewSummary" style="font-size:0.85rem;color:var(--text-dim);line-height:1.5;font-style:italic;margin:0;"></p>
                 </div>
             </div>
-            <div style="padding:1rem 1.5rem;border-top:1px solid var(--border);display:flex;justify-content:flex-end;">
+            <div style="padding:1.2rem 1.5rem;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:0.8rem;">
                 <button class="btn btn-ghost" onclick="closeViewModal()">Close</button>
+                <button id="outreachBtn" class="btn btn-primary" style="background:var(--primary);color:#000;border:none;font-weight:800;border-radius:10px;">
+                    <i class="fas fa-paper-plane"></i> Send Outreach
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== EMAIL COMPOSER MODAL ===== -->
+    <div id="emailComposerModal" class="modal-overlay" style="display:none;z-index:6000;">
+        <div class="modal-box" style="max-width:500px;background:var(--bg-dark);border:1px solid var(--border);border-radius:24px;">
+            <div class="modal-header">
+                <h3><i class="fas fa-envelope" style="color:var(--primary);"></i> Draft Outreach</h3>
+                <button onclick="document.getElementById('emailComposerModal').style.display='none'" class="modal-close"><i class="fas fa-times"></i></button>
+            </div>
+            <div style="margin-top:1rem;">
+                <div class="form-group">
+                    <label>To</label>
+                    <input type="text" id="composerTo" readonly style="background:rgba(0,0,0,0.2);color:var(--text-dim);">
+                </div>
+                <div class="form-group">
+                    <label>Subject</label>
+                    <input type="text" id="composerSubject" placeholder="Follow up from NLPCRM" value="Re: Your inquiry regarding CRM solutions">
+                </div>
+                <div class="form-group">
+                    <label>Message</label>
+                    <textarea id="composerBody" style="height:150px;background:rgba(0,0,0,0.2);border:1px solid var(--border);border-radius:12px;padding:1rem;color:white;"></textarea>
+                </div>
+            </div>
+            <div class="modal-actions" style="margin-top:1.5rem;">
+                <button class="btn btn-ghost" onclick="document.getElementById('emailComposerModal').style.display='none'">Discard</button>
+                <button class="btn btn-primary" id="sendEmailNowBtn" style="background:var(--primary);color:#000;font-weight:800;border:none;">
+                    <i class="fas fa-paper-plane"></i> SEND NOW
+                </button>
             </div>
         </div>
     </div>
@@ -452,20 +485,6 @@
                     body:f
                 }).then(()=>window.location.reload()); 
             };
-        } else if(service==='google'){
-            icon.innerHTML='<i class="fab fa-google"></i>'; header.style.background='linear-gradient(135deg,#c5221f,#ea4335)';
-            title.innerText='Google Workspace'; subtitle.innerText='Sync Gmail and Google Meet.';
-            content.innerHTML=`<div class="form-group"><label>Google Client ID</label><input type="text" id="gID" placeholder="XXX.apps.googleusercontent.com" class="form-input"></div>`;
-            submit.innerText='Start Auth'; submit.onclick=()=>{ 
-                const g=document.getElementById('gID').value; if(!g) return; 
-                const f=new URLSearchParams(); f.append('GOOGLE_CLIENT_ID',g); 
-                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-                fetch('/settings',{
-                    method:'POST',
-                    headers:{'Content-Type':'application/x-www-form-urlencoded','X-CSRFToken':csrfToken},
-                    body:f
-                }).then(()=>window.location.href='/google-auth'); 
-            };
         } else if(service==='zoom'||service==='teams'){
             const n=service==='zoom'?'Zoom':'MS Teams';
             icon.innerHTML=service==='zoom'?'<i class="fas fa-video"></i>':'<i class="fab fa-microsoft"></i>';
@@ -507,7 +526,55 @@
         else sb.style.cssText='padding:0.3rem 0.8rem;border-radius:20px;font-size:0.7rem;font-weight:700;text-transform:uppercase;background:rgba(255,255,255,0.05);color:#94a3b8;border:1px solid rgba(255,255,255,0.1);';
         document.getElementById('viewImportanceBadge').textContent=`${contact.importance_score||0}/10 Impact`;
         document.getElementById('viewSummary').textContent=contact.summary||'No summary available.';
+        
+        // Setup outreach button
+        const oBtn = document.getElementById('outreachBtn');
+        if (contact.email) {
+            oBtn.style.display = 'flex';
+            oBtn.onclick = () => openComposer(contact);
+        } else {
+            oBtn.style.display = 'none';
+        }
+        
         document.getElementById('viewContactModal').style.display='flex';
+    }
+
+    function openComposer(contact) {
+        document.getElementById('composerTo').value = contact.email;
+        document.getElementById('composerBody').value = `Hi ${contact.name || 'there'},\n\nI noticed your interest in our solutions. I'd love to chat more about how we can help ${contact.company || 'your team'}.\n\nBest regards,\n${document.querySelector('.sidebar-user-name')?.textContent || 'Aman Varma'}`;
+        document.getElementById('emailComposerModal').style.display = 'flex';
+        
+        document.getElementById('sendEmailNowBtn').onclick = async function() {
+            const btn = this;
+            const originalHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
+            
+            try {
+                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+                const resp = await fetch('/email/send', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+                    body: JSON.stringify({
+                        to: document.getElementById('composerTo').value,
+                        subject: document.getElementById('composerSubject').value,
+                        body: document.getElementById('composerBody').value
+                    })
+                });
+                const data = await resp.json();
+                if (data.success) {
+                    showToast('Email sent successfully!', 'success');
+                    document.getElementById('emailComposerModal').style.display = 'none';
+                } else {
+                    showToast('Failed to send: ' + data.message, 'error');
+                }
+            } catch (e) {
+                showToast('Network error while sending email.', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+            }
+        };
     }
 
     // ===== Confirm Delete =====

@@ -56,9 +56,23 @@ class EmailService:
     # ------------------------------------------------------------------ #
 
     def is_configured(self):
-        """True if at least SMTP credentials are set."""
+        """True if both SMTP and POP3 credentials are set."""
         cfg = self._get_config()
-        return bool(cfg["smtp_user"] and cfg["smtp_password"])
+        smtp_ready = bool(cfg["smtp_user"] and cfg["smtp_password"])
+        pop3_ready = bool(cfg["pop3_user"] and cfg["pop3_password"])
+        return smtp_ready and pop3_ready
+
+    def get_status(self):
+        """Returns a dict describing the current configuration state."""
+        cfg = self._get_config()
+        return {
+            "smtp_configured": bool(cfg["smtp_user"] and cfg["smtp_password"]),
+            "pop3_configured": bool(cfg["pop3_user"] and cfg["pop3_password"]),
+            "smtp_user": cfg["smtp_user"],
+            "pop3_user": cfg["pop3_user"],
+            "smtp_host": cfg["smtp_host"],
+            "pop3_host": cfg["pop3_host"]
+        }
 
     def test_smtp_connection(self):
         """Try connecting to SMTP server and authenticating. Returns (ok, message)."""
