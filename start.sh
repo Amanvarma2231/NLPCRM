@@ -1,4 +1,5 @@
 #!/bin/bash
+cd "$(dirname "$0")"
 echo "Starting NLP CRM..."
 
 # Create virtual environment if it doesn't exist
