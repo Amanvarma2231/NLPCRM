@@ -29,7 +29,7 @@ class EmailService:
     # ------------------------------------------------------------------ #
 
     def _get_config(self):
-        """Return a config dict with SMTP and POP3 settings."""
+        """Return a config dict with SMTP, POP3, and IMAP settings."""
         settings = db_service.get_settings()
 
         def _get(key, env_key=None, default=""):
@@ -49,6 +49,13 @@ class EmailService:
             "pop3_port":     int(_get("POP3_PORT",  default="995")),
             "pop3_user":     _get("POP3_USER"),
             "pop3_password": _get("POP3_PASSWORD"),
+            
+            # IMAP (alternative receiving)
+            "imap_host":     _get("IMAP_HOST",     default="imap.gmail.com"),
+            "imap_port":     int(_get("IMAP_PORT",  default="993")),
+            "imap_user":     _get("IMAP_USER"),
+            "imap_password": _get("IMAP_PASSWORD"),
+            "use_imap":      _get("USE_IMAP",      default="false").lower() == "true",
         }
 
     # ------------------------------------------------------------------ #
@@ -157,9 +164,20 @@ class EmailService:
 
     def fetch_emails(self, max_count: int = 10):
         """
-        Fetch recent emails from the POP3 inbox.
+        Fetch recent emails from POP3 or IMAP inbox.
         Returns a list of dicts: {id, from, subject, text, snippet, source}.
         """
+        cfg = self._get_config()
+        
+        # Try IMAP first if enabled
+        if cfg.get("use_imap") and cfg.get("imap_user") and cfg.get("imap_password"):
+            return self._fetch_emails_imap(max_count)
+        
+        # Fallback to POP3
+        return self._fetch_emails_pop3(max_count)
+    
+    def _fetch_emails_pop3(self, max_count: int = 10):
+        """Fetch emails via POP3"""
         cfg = self._get_config()
         if not cfg["pop3_user"] or not cfg["pop3_password"]:
             logger.warning("POP3 credentials not configured — skipping fetch.")
@@ -216,6 +234,60 @@ class EmailService:
                 logger.error(f"POP3 fetch failed: {e}")
             return []
 
+    def _fetch_emails_imap(self, max_count: int = 10):
+        """Fetch emails via IMAP (more reliable than POP3)"""
+        cfg = self._get_config()
+        messages = []
+        
+        try:
+            import imaplib
+            
+            server = imaplib.IMAP4_SSL(cfg["imap_host"], cfg["imap_port"])
+            server.login(cfg["imap_user"], cfg["imap_password"])
+            server.select("INBOX")
+            
+            _, message_numbers = server.search(None, "ALL")
+            message_ids = message_numbers[0].split()
+            
+            recent_ids = message_ids[-max_count:] if len(message_ids) > max_count else message_ids
+            recent_ids.reverse()
+            
+            for msg_id in recent_ids:
+                try:
+                    _, msg_data = server.fetch(msg_id, "(RFC822)")
+                    raw_email = msg_data[0][1]
+                    msg = email_lib.message_from_bytes(raw_email)
+                    
+                    subject_parts = decode_header(msg.get("Subject", "No Subject"))
+                    subject = ""
+                    for part, charset in subject_parts:
+                        if isinstance(part, bytes):
+                            subject += part.decode(charset or "utf-8", errors="ignore")
+                        else:
+                            subject += part
+                    
+                    from_addr = msg.get("From", "Unknown")
+                    body_text = self._extract_body(msg)
+                    
+                    messages.append({
+                        "id": msg_id.decode(),
+                        "from": from_addr,
+                        "subject": subject,
+                        "text": body_text[:2000],
+                        "snippet": body_text[:200],
+                        "source": "Email (IMAP)"
+                    })
+                except Exception as msg_error:
+                    logger.warning(f"Skipping message {msg_id}: {msg_error}")
+            
+            server.close()
+            server.logout()
+            logger.info(f"Fetched {len(messages)} emails via IMAP.")
+            return messages
+            
+        except Exception as e:
+            logger.error(f"IMAP fetch failed: {e}")
+            return []
 
     def _extract_body(self, msg) -> str:
         """Extract plain-text body from an email.Message object."""

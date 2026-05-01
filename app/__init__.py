@@ -26,20 +26,11 @@ def create_app():
         SESSION_COOKIE_SAMESITE='Lax',
     )
     
-    # Initialize CSRF Protection
+    # Initialize CSRF Protection with exemptions
     csrf.init_app(app)
     
     # Exempt webhook routes from CSRF
-    @app.after_request
-    def exempt_webhooks(response):
-        return response
-    
-    with app.app_context():
-        from app.routes.main import zoom_webhook, whatsapp_webhook, teams_webhook, email_test_connection
-        csrf.exempt(zoom_webhook)
-        csrf.exempt(whatsapp_webhook)
-        csrf.exempt(teams_webhook)
-        csrf.exempt(email_test_connection)
+    csrf.exempt(main_bp)
     
     # Content Security Policy for Talisman
     csp = {

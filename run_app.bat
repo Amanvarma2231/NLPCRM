@@ -1,65 +1,50 @@
 @echo off
-setlocal enabledelayedexpansion
+chcp 65001 >nul
+REM ============================================
+REM NLPCRM v3.1 - Professional Start Script
+REM ============================================
 
-:: Professional Header
-echo ====================================================
-echo           NLP CRM - SMART BUSINESS ENGINE
-echo ====================================================
+echo.
+echo ============================================================
+echo   NLPCRM v3.1 - Neural Intelligence Platform
+echo ============================================================
 echo.
 
-:: Set Directory
-cd /d "%~dp0"
-
-:: Virtual Environment Check
-where python >nul 2>nul
-if errorlevel 1 (
-    echo [ERROR] Python not found in system path. Please install Python.
-    pause
-    exit /b
-)
-
+REM Check if virtual environment exists
 if not exist .venv (
-    echo [SYSTEM] Creating virtual environment...
-    python -m venv .venv
-    if errorlevel 1 (
-        echo [ERROR] Failed to create virtual environment. Please install Python.
-        pause
-        exit /b 1
-    )
+    echo [ERROR] Virtual environment not found!
+    echo Please run setup.bat first.
+    echo.
+    pause
+    exit /b 1
 )
 
-:: Dependency Check (Silent unless missing)
-if exist requirements.txt (
-    echo [SYSTEM] Checking dependencies...
-    .venv\Scripts\python -m pip install -r requirements.txt --quiet
-)
-
-:: Environment Setup
-if not exist .env (
-    echo [SYSTEM] Generating initial .env configuration...
-    echo SECRET_KEY=!RANDOM!!RANDOM! > .env
-    echo ADMIN_PASSWORD=admin@2026 >> .env
-    echo ADMIN_EMAIL=admin@nlpcrm.com >> .env
-    echo HF_API_KEY= >> .env
-    echo SQLITE_CLOUD_URL= >> .env
-)
-
-:: Launch Application
-echo.
-echo [SUCCESS] NLPCRM Intelligence Engine is online!
-echo [INFO] Access the application at: http://localhost:5001
-echo [TIP] Using port 5001 avoids browser-cached security errors.
-
-:: Open browser automatically
-start http://localhost:5001
-
-.venv\Scripts\python run.py
-
+REM Run system verification
+echo [1/2] Running system verification...
+python verify_system.py
 if errorlevel 1 (
     echo.
-    echo [CRITICAL] Server stopped unexpectedly.
+    echo [ERROR] System verification failed!
+    echo Please fix the errors above before starting.
     pause
+    exit /b 1
 )
 
-endlocal
+echo.
+echo [2/2] Starting NLPCRM server...
+echo.
+echo ============================================================
+echo   Server Information
+echo ============================================================
+echo   URL: http://localhost:5000
+echo   Login: admin@nlpcrm.com
+echo   Password: admin@2026
+echo ============================================================
+echo.
+echo Press Ctrl+C to stop the server
+echo.
 
+REM Start the application
+python run.py
+
+pause
