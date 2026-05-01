@@ -1,1 +1,1 @@
-web: gunicorn -w 4 -b 0.0.0.0:$PORT run:app
+web: gunicorn --workers=4 --threads=2 --worker-class=gthread --timeout=120 --bind=0.0.0.0:$PORT --log-level=info --access-logfile=- --error-logfile=- run:app

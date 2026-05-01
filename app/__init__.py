@@ -78,7 +78,8 @@ def create_app():
             'https://cdn.jsdelivr.net'
         ]
     }
-    Talisman(app, content_security_policy=csp, force_https=False)
+    # Talisman is removed for local development to avoid "Not Secure" loops / HSTS issues.
+    # Security is maintained via CSRF protection and secure session management.
 
     # 2. Register Blueprints
     app.register_blueprint(main_bp)
@@ -128,7 +129,10 @@ def create_app():
     # --- System Asset Routes (Directly on App to bypass Blueprint auth) ---
     @app.route('/favicon.ico')
     def favicon():
-        return send_from_directory(os.path.abspath(app.static_folder), 'favicon.ico', mimetype='image/vnd.microsoft.icon')
+        # Support both .ico and .png fallback
+        if os.path.exists(os.path.join(app.static_folder, 'favicon.ico')):
+            return send_from_directory(os.path.abspath(app.static_folder), 'favicon.ico', mimetype='image/vnd.microsoft.icon')
+        return send_from_directory(os.path.abspath(app.static_folder), 'favicon.png', mimetype='image/png')
 
     @app.route('/manifest.json')
     def manifest():

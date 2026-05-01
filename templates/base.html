@@ -148,11 +148,23 @@
             </div>
             <button onclick="toggleAiDrawer()" style="background: none; border: none; color: var(--text-muted); cursor: pointer; transition: color 0.2s;"><i class="fas fa-times"></i></button>
         </div>
+        
+        <!-- Suggestions Area -->
+        <div id="aiSuggestions" style="padding: 1rem 1.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap; border-bottom: 1px solid var(--border); background: rgba(0,0,0,0.1);">
+            <button class="esa-chip" onclick="sendGlobalAiMessage('Show high interest leads')">🔥 High Leads</button>
+            <button class="esa-chip" onclick="sendGlobalAiMessage('WhatsApp contacts')">📱 WhatsApp</button>
+            <button class="esa-chip" onclick="sendGlobalAiMessage('New leads')">✨ New Leads</button>
+        </div>
+
         <div id="aiChatWindow" style="flex: 1; overflow-y: auto; padding: 1.8rem; display: flex; flex-direction: column; gap: 1.5rem; background: var(--sidebar-bg);">
-            <div style="background: var(--card-bg); border: 1px solid var(--border); padding: 1.25rem; border-radius: 12px 12px 12px 0; max-width: 85%; align-self: flex-start; font-size: 0.9rem; line-height: 1.6; color: #fff; box-shadow: var(--shadow-sm);">
-                Greetings. I am your Lead Intelligence Analyst. I have indexed your current database. How can I assist you in optimizing your outreach?
+            <div class="esa-bubble-ai">
+                <div class="esa-avatar"><i class="fas fa-robot"></i></div>
+                <div class="esa-text">
+                    Greetings. I am your Lead Intelligence Analyst. I have indexed your current database. How can I assist you in optimizing your outreach?
+                </div>
             </div>
         </div>
+        
         <div style="padding: 1.5rem; border-top: 1px solid var(--border); background: var(--bg-dark);">
             <div style="position: relative;">
                 <input type="text" id="aiGlobalInput" placeholder="Ask intelligence anything..." style="width: 100%; border-radius: 10px; background: var(--card-bg); border: 1px solid var(--border); color: white; padding: 1rem 3.5rem 1rem 1.25rem; font-size: 0.9rem; outline: none; transition: border-color 0.2s;" onkeypress="if(event.key === 'Enter') sendGlobalAiMessage()">
@@ -214,9 +226,16 @@
         <div id="toast-container" class="toast-container"></div>
     </main>
 
+    <!-- Secure Context Helper -->
+    <script>
+        if (window.location.hostname === '127.0.0.1') {
+            window.location.hostname = 'localhost';
+        }
+    </script>
     <script>
         function showToast(message, type = 'info') {
-            const container = document.getElementById('toast-container');
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
             const toast = document.createElement('div');
             toast.className = `toast toast-${type}`;
             
@@ -231,8 +250,7 @@
             container.appendChild(toast);
             
             setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transform = 'translateY(-20px)';
+                toast.classList.add('hiding');
                 setTimeout(() => toast.remove(), 400);
             }, 4000);
         }
@@ -418,9 +436,7 @@
         </div>
     </div>
 
-    <!-- Toast Container -->
-    <div id="toastContainer" class="toast-container"></div>
-
+    <!-- Modals & Scripts -->
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     <script>
     // ===== Modal Helpers =====
@@ -497,12 +513,19 @@
         modal.style.display='flex';
     }
 
-    // ===== View Contact =====
+    // ===== View Contact Intelligence =====
     function viewContact(contact) {
         if(!contact) return;
         if(typeof contact==='string') { try{contact=JSON.parse(contact);}catch(e){console.error("View parse error", e); return;} }
         
-        // Safety mappings
+        // Check if we are on the directory page and have the drawer
+        const drawer = document.getElementById('contactDrawer');
+        if (drawer && typeof openDrawer === 'function') {
+            openDrawer(contact);
+            return;
+        }
+
+        // Fallback for simple dashboard view
         const name = contact.name || 'Intelligence Entity';
         const company = contact.company || 'Organization Discovery Pending';
         const email = contact.email || 'No Primary Email';
@@ -513,30 +536,40 @@
         document.getElementById('viewAvatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=6366f1&color=fff&size=128&bold=true`;
         document.getElementById('viewEmail').textContent = email;
         document.getElementById('viewPhone').textContent = phone;
-        const exC=document.getElementById('viewExtraEmailsContainer'), exL=document.getElementById('viewExtraEmailsList');
-        exL.innerHTML='';
-        try { const em=typeof contact.email2==='string'?JSON.parse(contact.email2):(contact.email2||[]); if(em.length){em.forEach(e=>{exL.innerHTML+=`<div style="font-size:0.85rem;color:var(--text-dim);">${e.label}: <a href="mailto:${e.value}" style="color:#6366f1;">${e.value}</a></div>`;}); exC.style.display='block';} else exC.style.display='none'; } catch(e){exC.style.display='none';}
-        const sC=document.getElementById('viewSocialsContainer'), sL=document.getElementById('viewSocialsList');
-        sL.innerHTML='';
-        try { const so=typeof contact.social_media==='string'?JSON.parse(contact.social_media):(contact.social_media||[]); if(so.length){so.forEach(s=>{const isUrl=(s.value||'').startsWith('http'); sL.innerHTML+=`<div style="font-size:0.85rem;color:var(--text-dim);">${s.label}: ${isUrl?`<a href="${s.value}" target="_blank" style="color:#6366f1;">${s.value}</a>`:`<span style="color:white;">${s.value}</span>`}</div>`;}); sC.style.display='block';} else sC.style.display='none'; } catch(e){sC.style.display='none';}
-        const sent=contact.sentiment||'Neutral', sb=document.getElementById('viewSentimentBadge');
-        sb.textContent=sent;
-        if(sent==='Positive') sb.style.cssText='padding:0.3rem 0.8rem;border-radius:20px;font-size:0.7rem;font-weight:700;text-transform:uppercase;background:rgba(0,255,136,0.1);color:#00ff88;border:1px solid rgba(0,255,136,0.2);';
-        else if(sent==='Negative') sb.style.cssText='padding:0.3rem 0.8rem;border-radius:20px;font-size:0.7rem;font-weight:700;text-transform:uppercase;background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.2);';
-        else sb.style.cssText='padding:0.3rem 0.8rem;border-radius:20px;font-size:0.7rem;font-weight:700;text-transform:uppercase;background:rgba(255,255,255,0.05);color:#94a3b8;border:1px solid rgba(255,255,255,0.1);';
-        document.getElementById('viewImportanceBadge').textContent=`${contact.importance_score||0}/10 Impact`;
-        document.getElementById('viewSummary').textContent=contact.summary||'No summary available.';
         
-        // Setup outreach button
-        const oBtn = document.getElementById('outreachBtn');
-        if (contact.email) {
-            oBtn.style.display = 'flex';
-            oBtn.onclick = () => openComposer(contact);
-        } else {
-            oBtn.style.display = 'none';
+        const exC=document.getElementById('viewExtraEmailsContainer'), exL=document.getElementById('viewExtraEmailsList');
+        if(exL) exL.innerHTML='';
+        try { const em=typeof contact.email2==='string'?JSON.parse(contact.email2):(contact.email2||[]); if(em.length && exC){em.forEach(e=>{exL.innerHTML+=`<div style="font-size:0.85rem;color:var(--text-dim);">${e.label}: <a href="mailto:${e.value}" style="color:#6366f1;">${e.value}</a></div>`;}); exC.style.display='block';} else if(exC) exC.style.display='none'; } catch(e){if(exC) exC.style.display='none';}
+        
+        const sC=document.getElementById('viewSocialsContainer'), sL=document.getElementById('viewSocialsList');
+        if(sL) sL.innerHTML='';
+        try { const so=typeof contact.social_media==='string'?JSON.parse(contact.social_media):(contact.social_media||[]); if(so.length && sC){so.forEach(s=>{const isUrl=(s.value||'').startsWith('http'); sL.innerHTML+=`<div style="font-size:0.85rem;color:var(--text-dim);">${s.label}: ${isUrl?`<a href="${s.value}" target="_blank" style="color:#6366f1;">${s.value}</a>`:`<span style="color:white;">${s.value}</span>`}</div>`;}); sC.style.display='block';} else if(sC) sC.style.display='none'; } catch(e){if(sC) sC.style.display='none';}
+        
+        const sent=contact.sentiment||'Neutral', sb=document.getElementById('viewSentimentBadge');
+        if(sb) {
+            sb.textContent=sent;
+            if(sent==='Positive') sb.style.cssText='padding:0.3rem 0.8rem;border-radius:20px;font-size:0.7rem;font-weight:700;text-transform:uppercase;background:rgba(0,255,136,0.1);color:#00ff88;border:1px solid rgba(0,255,136,0.2);';
+            else if(sent==='Negative') sb.style.cssText='padding:0.3rem 0.8rem;border-radius:20px;font-size:0.7rem;font-weight:700;text-transform:uppercase;background:rgba(239,68,68,0.1);color:#ef4444;border:1px solid rgba(239,68,68,0.2);';
+            else sb.style.cssText='padding:0.3rem 0.8rem;border-radius:20px;font-size:0.7rem;font-weight:700;text-transform:uppercase;background:rgba(255,255,255,0.05);color:#94a3b8;border:1px solid rgba(255,255,255,0.1);';
         }
         
-        document.getElementById('viewContactModal').style.display='flex';
+        const ib = document.getElementById('viewImportanceBadge');
+        if(ib) ib.textContent=`${contact.importance_score||0}/10 Impact`;
+        const vsm = document.getElementById('viewSummary');
+        if(vsm) vsm.textContent=contact.summary||'No summary available.';
+        
+        const oBtn = document.getElementById('outreachBtn');
+        if (oBtn) {
+            if (contact.email) {
+                oBtn.style.display = 'flex';
+                oBtn.onclick = () => openComposer(contact);
+            } else {
+                oBtn.style.display = 'none';
+            }
+        }
+        
+        const vcm = document.getElementById('viewContactModal');
+        if(vcm) vcm.style.display='flex';
     }
 
     function openComposer(contact) {
@@ -586,6 +619,84 @@
     }
 
     if('serviceWorker' in navigator) navigator.serviceWorker.register('/service-worker.js').catch(()=>{});
+
+    // ===== AI Drawer Logic =====
+    function toggleAiDrawer() {
+        const d = document.getElementById('aiDrawer');
+        if (d.style.right === '0px') {
+            d.style.right = '-450px';
+        } else {
+            d.style.right = '0px';
+            document.getElementById('aiGlobalInput').focus();
+        }
+    }
+
+    async function sendGlobalAiMessage(query) {
+        const input = document.getElementById('aiGlobalInput');
+        const text = query || input.value.trim();
+        if (!text) return;
+
+        const chatWindow = document.getElementById('aiChatWindow');
+        const suggestions = document.getElementById('aiSuggestions');
+        if (suggestions) suggestions.style.display = 'none';
+
+        // Add user message
+        const userDiv = document.createElement('div');
+        userDiv.className = 'esa-bubble-user';
+        userDiv.innerHTML = `<div class="esa-text-user">${text}</div>`;
+        chatWindow.appendChild(userDiv);
+        input.value = '';
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+
+        // Add loader
+        const loader = document.createElement('div');
+        loader.className = 'esa-bubble-ai';
+        loader.id = 'aiGlobalLoader';
+        loader.innerHTML = `<div class="esa-avatar"><i class="fas fa-robot"></i></div><div class="esa-text"><i class="fas fa-circle-notch fa-spin"></i> Analyzing intelligence...</div>`;
+        chatWindow.appendChild(loader);
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+
+        try {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+            const resp = await fetch('/ai-assistant/query', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+                body: JSON.stringify({ query: text })
+            });
+            const data = await resp.json();
+            loader.remove();
+
+            const aiDiv = document.createElement('div');
+            aiDiv.className = 'esa-bubble-ai';
+            let html = '';
+
+            if (data.success) {
+                if (data.is_analysis) {
+                    html = data.answer || 'No specific analysis returned.';
+                } else if (data.count === 0) {
+                    html = `I couldn't find any specific leads matching <strong>"${text}"</strong>.`;
+                } else {
+                    html = `Found <strong>${data.count} lead(s)</strong>:<br><br>`;
+                    data.results.slice(0, 3).forEach(c => {
+                        html += `<div style="background:rgba(255,255,255,0.03);padding:0.6rem;border-radius:8px;margin-bottom:0.4rem;border:1px solid var(--border);">
+                            <div style="font-weight:700;font-size:0.8rem;">${c.name || 'Unknown'}</div>
+                            <div style="font-size:0.7rem;color:var(--text-dim);">${c.company || 'No Company'}</div>
+                        </div>`;
+                    });
+                    if (data.count > 3) html += `<a href="/contacts" style="font-size:0.7rem;color:var(--primary);">+${data.count-3} more in Directory</a>`;
+                }
+            } else {
+                html = 'I encountered an issue processing that request.';
+            }
+
+            aiDiv.innerHTML = `<div class="esa-avatar"><i class="fas fa-robot"></i></div><div class="esa-text">${html}</div>`;
+            chatWindow.appendChild(aiDiv);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        } catch (e) {
+            if (document.getElementById('aiGlobalLoader')) document.getElementById('aiGlobalLoader').remove();
+            showToast('AI connection lost.', 'error');
+        }
+    }
     </script>
 </body>
 </html>

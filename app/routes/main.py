@@ -165,8 +165,13 @@ def dashboard():
 @login_required
 def contacts_list():
     try:
+        company_filter = request.args.get('company')
         contacts = contact_service.get_contacts() or []
-        return render_template("contacts.html", contacts=contacts)
+        
+        if company_filter:
+            contacts = [c for c in contacts if company_filter.lower() == (c.get('company') or '').lower()]
+            
+        return render_template("contacts.html", contacts=contacts, active_company=company_filter)
     except Exception as e:
         logger.error(f"Failed to render contacts_list: {e}", exc_info=True)
         return redirect(url_for('main.dashboard', error_msg="Failed to load contacts directory."))
@@ -352,9 +357,7 @@ def process_text():
         extracted = nlp_service.extract_contact_info(text, source="Manual Extraction")
         # Store in DB if it contains valid info
         contact_json = _parse_json_from_llm(extracted)
-        if contact_json and contact_json.get('email'):
-            contact_service.add_contact(contact_json)
-            
+        
         return jsonify({"success": True, "extracted": extracted})
     except Exception as e:
         logger.error(f"Manual extraction failed: {e}")

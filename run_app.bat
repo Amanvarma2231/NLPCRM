@@ -1,19 +1,65 @@
 @echo off
+setlocal enabledelayedexpansion
+
+:: Professional Header
+echo ====================================================
+echo           NLP CRM - SMART BUSINESS ENGINE
+echo ====================================================
+echo.
+
+:: Set Directory
 cd /d "%~dp0"
-echo Starting NLP CRM...
-echo.
-echo Installing requirements...
-.venv\Scripts\pip install -r requirements.txt
-echo.
-echo Setting up environment variables...
+
+:: Virtual Environment Check
+where python >nul 2>nul
+if errorlevel 1 (
+    echo [ERROR] Python not found in system path. Please install Python.
+    pause
+    exit /b
+)
+
+if not exist .venv (
+    echo [SYSTEM] Creating virtual environment...
+    python -m venv .venv
+    if errorlevel 1 (
+        echo [ERROR] Failed to create virtual environment. Please install Python.
+        pause
+        exit /b 1
+    )
+)
+
+:: Dependency Check (Silent unless missing)
+if exist requirements.txt (
+    echo [SYSTEM] Checking dependencies...
+    .venv\Scripts\python -m pip install -r requirements.txt --quiet
+)
+
+:: Environment Setup
 if not exist .env (
-    echo WARNING: .env file not found! Generating basic .env...
-    echo SECRET_KEY=%RANDOM%%RANDOM% > .env
+    echo [SYSTEM] Generating initial .env configuration...
+    echo SECRET_KEY=!RANDOM!!RANDOM! > .env
     echo ADMIN_PASSWORD=admin@2026 >> .env
     echo ADMIN_EMAIL=admin@nlpcrm.com >> .env
+    echo HF_API_KEY= >> .env
+    echo SQLITE_CLOUD_URL= >> .env
 )
-findstr /C:"SECRET_KEY" .env >nul || (echo SECRET_KEY=super-secret-%RANDOM% >> .env)
+
+:: Launch Application
 echo.
-echo Launching server...
+echo [SUCCESS] NLPCRM Intelligence Engine is online!
+echo [INFO] Access the application at: http://localhost:5001
+echo [TIP] Using port 5001 avoids browser-cached security errors.
+
+:: Open browser automatically
+start http://localhost:5001
+
 .venv\Scripts\python run.py
-pause
+
+if errorlevel 1 (
+    echo.
+    echo [CRITICAL] Server stopped unexpectedly.
+    pause
+)
+
+endlocal
+

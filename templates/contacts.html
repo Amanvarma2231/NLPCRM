@@ -46,6 +46,11 @@
             <table style="width: 100%; border-collapse: collapse;">
                 <thead>
                     <tr style="border-bottom: 1px solid var(--glass-border); background: rgba(255,255,255,0.02);">
+                        <th style="padding: 1.5rem 1.8rem; text-align: left; width: 40px;">
+                            <div class="custom-checkbox-wrapper">
+                                <input type="checkbox" id="selectAllCheckbox" class="custom-checkbox" onchange="toggleAll(this)">
+                            </div>
+                        </th>
                         <th style="padding: 1.5rem 1.8rem; text-align: left; font-size: 0.75rem; font-weight: 900; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Lead Identity</th>
                         <th style="padding: 1.5rem 1.8rem; text-align: left; font-size: 0.75rem; font-weight: 900; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Sentiment Matrix</th>
                         <th style="padding: 1.5rem 1.8rem; text-align: left; font-size: 0.75rem; font-weight: 900; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Neural Impact</th>
@@ -56,11 +61,13 @@
                     {% if contacts %}
                     {% for contact in contacts %}
                     <tr class="contact-row" style="border-bottom: 1px solid var(--glass-border); transition: background 0.1s; cursor: pointer;" onmouseover="this.style.background='rgba(255,255,255,0.02)'" onmouseout="this.style.background='transparent'" onclick='viewContact({{ contact|tojson|safe }})' data-interest="{{ contact.interest }}" data-sentiment="{{ contact.sentiment }}">
+                        <td style="padding: 1.25rem 1.5rem;" onclick="event.stopPropagation()">
+                            <div class="custom-checkbox-wrapper">
+                                <input type="checkbox" class="row-checkbox custom-checkbox" value="{{ contact.email }}" onchange="updateSelection()">
+                            </div>
+                        </td>
                         <td style="padding: 1.25rem 1.5rem;">
                             <div style="display: flex; align-items: center; gap: 0.8rem;">
-                                <div class="custom-checkbox-wrapper" onclick="event.stopPropagation()">
-                                    <input type="checkbox" class="row-checkbox" value="{{ contact.email }}" onchange="updateSelection()">
-                                </div>
                                 <div style="width: 36px; height: 36px; border-radius: 8px; background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--text-dim);">
                                     {{ contact.name[0] if contact.name else 'L' }}
                                 </div>
@@ -85,9 +92,14 @@
                             </div>
                         </td>
                         <td style="padding: 1.25rem 1.5rem; text-align: right;">
-                            <button class="btn btn-secondary" onclick="event.stopPropagation(); confirmDelete('{{ contact.email }}', '{{ contact.name }}')" style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.1); color: #ef4444;">
-                                <i class="fas fa-trash-alt" style="font-size: 0.8rem;"></i>
-                            </button>
+                            <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+                                <button class="btn btn-secondary" onclick="event.stopPropagation(); toggleAiDrawer(); sendGlobalAiMessage('Tell me about lead {{ contact.name or contact.email }}')" title="Analyze with AI" style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; background: rgba(204, 255, 0, 0.05); border: 1px solid rgba(204, 255, 0, 0.1); color: var(--primary);">
+                                    <i class="fas fa-brain" style="font-size: 0.8rem;"></i>
+                                </button>
+                                <button class="btn btn-secondary" onclick="event.stopPropagation(); confirmDelete('{{ contact.email }}', '{{ contact.name }}')" style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.1); color: #ef4444;">
+                                    <i class="fas fa-trash-alt" style="font-size: 0.8rem;"></i>
+                                </button>
+                            </div>
                         </td>
                     </tr>
                     {% endfor %}
@@ -209,12 +221,14 @@
              activeIcon.style.color = 'var(--primary-light)';
         }
         
-        // Update header text
+        // Update status text in UI if it exists
         const showingText = document.getElementById('showingCount');
-        if(filterType === 'all') showingText.innerText = 'Showing all insights';
-        else if(filterType === 'High') showingText.innerText = 'Showing key opportunities';
-        else if(filterType === 'Positive') showingText.innerText = 'Showing positive signals';
-        else if(filterType === 'Negative') showingText.innerText = 'Showing friction points';
+        if(showingText) {
+            if(filterType === 'all') showingText.innerText = 'Showing all insights';
+            else if(filterType === 'High') showingText.innerText = 'Showing key opportunities';
+            else if(filterType === 'Positive') showingText.innerText = 'Showing positive signals';
+            else if(filterType === 'Negative') showingText.innerText = 'Showing friction points';
+        }
         
         filterContacts();
     }
@@ -257,9 +271,8 @@
             }
         }
         
-        // When filtering changes, rows that might have been selected could be hidden. 
-        // Deselect hidden rows to be safe.
-        toggleAll({checked: document.getElementById('selectAllCheckbox').checked});
+        // Update selection UI after filtering
+        updateSelection();
     }
 
     // Selection Logic
@@ -346,13 +359,8 @@
     }
 
     // Drawer Logic
-    function openDrawer(tdElement) {
-        if(event.target.closest('.custom-checkbox-wrapper') || event.target.closest('.btn')) return;
-        
-        const contactDataStr = tdElement.getAttribute('data-contact');
-        if(!contactDataStr) return;
-        
-        const contact = JSON.parse(contactDataStr);
+    function openDrawer(contact) {
+        if(!contact) return;
         
         document.getElementById('drawerName').innerText = contact.name || 'Unknown Entity';
         document.getElementById('drawerCompany').innerText = contact.company || 'No Organization Provided';

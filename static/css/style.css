@@ -531,6 +531,7 @@ body {
     background: rgba(79, 70, 229, 0.2);
     color: #fff;
     border: 1px solid rgba(79, 70, 229, 0.3);
+    -webkit-backdrop-filter: blur(8px);
     backdrop-filter: blur(8px);
 }
 
@@ -774,6 +775,7 @@ td {
     width: 100%;
     height: 100%;
     background: rgba(0, 0, 0, 0.8);
+    -webkit-backdrop-filter: blur(5px);
     backdrop-filter: blur(5px);
 }
 
@@ -847,6 +849,7 @@ textarea {
 .contacts-sidebar {
     width: 280px;
     background: rgba(15, 22, 36, 0.92);
+    -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255,255,255,0.13);
     border-radius: 20px;
@@ -861,6 +864,7 @@ textarea {
 .contacts-main {
     flex-grow: 1;
     background: rgba(15, 22, 36, 0.92);
+    -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255,255,255,0.13);
     border-radius: 20px;
@@ -970,6 +974,7 @@ textarea {
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
     background: rgba(0, 0, 0, 0.6);
+    -webkit-backdrop-filter: blur(4px);
     backdrop-filter: blur(4px);
     z-index: 2000;
     opacity: 0;
@@ -1008,6 +1013,7 @@ textarea {
     top: 0;
     z-index: 10;
     border-bottom: 1px solid rgba(255,255,255,0.05);
+    -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
 }
 
@@ -1113,6 +1119,7 @@ textarea {
     left: 50%;
     transform: translateX(-50%) translateY(100px);
     background: rgba(30, 41, 59, 0.9);
+    -webkit-backdrop-filter: blur(12px);
     backdrop-filter: blur(12px);
     border: 1px solid rgba(255,255,255,0.1);
     padding: 1rem 2rem;
@@ -1155,8 +1162,8 @@ textarea {
     min-width: 300px;
     padding: 1rem 1.5rem;
     background: rgba(47, 47, 71, 0.8);
-    backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
     border: 1px solid var(--glass-border);
     border-radius: 12px;
     color: var(--text-main);
@@ -1248,3 +1255,58 @@ textarea {
 .neural-header-glow:hover {
     box-shadow: 0 0 60px rgba(204, 255, 0, 0.08);
 }
+
+/* ===== ESA & AI Drawer Styles ===== */
+.esa-chip {
+    background: rgba(204, 255, 0, 0.1);
+    border: 1px solid rgba(204, 255, 0, 0.2);
+    color: var(--primary-light);
+    padding: 0.35rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 700;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+.esa-chip:hover { 
+    background: rgba(204, 255, 0, 0.2); 
+    transform: scale(1.05);
+    border-color: var(--primary);
+}
+
+.esa-bubble-ai { display: flex; align-items: flex-start; gap: 0.8rem; margin-bottom: 1rem; }
+.esa-avatar {
+    width: 32px; height: 32px; border-radius: 10px;
+    background: var(--primary-gradient);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.8rem; flex-shrink: 0; color: #000;
+}
+.esa-text {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border);
+    padding: 0.8rem 1.1rem;
+    border-radius: 4px 16px 16px 16px;
+    font-size: 0.88rem;
+    line-height: 1.6;
+    color: #fff;
+    max-width: 90%;
+    box-shadow: var(--shadow-sm);
+}
+
+.esa-bubble-user { display: flex; justify-content: flex-end; margin-bottom: 1rem; }
+.esa-text-user {
+    background: var(--primary-gradient);
+    padding: 0.8rem 1.1rem;
+    border-radius: 16px 4px 16px 16px;
+    font-size: 0.88rem;
+    line-height: 1.6;
+    color: #000;
+    font-weight: 600;
+    max-width: 85%;
+    box-shadow: 0 4px 15px rgba(204, 255, 0, 0.2);
+}
+
+#aiChatWindow::-webkit-scrollbar { width: 4px; }
+#aiChatWindow::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }

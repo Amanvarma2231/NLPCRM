@@ -23,7 +23,6 @@ logger = logging.getLogger('NLPCRM_Server')
 def validate_config():
     """Ensure critical environment variables are present before starting."""
     required_keys = [
-        ("SQLITE_CLOUD_URL", "Database connectivity is required. Check your .env file."),
         ("HF_API_KEY", "HuggingFace API Key missing. AI extraction will fail."),
         ("SECRET_KEY", "Secret key not set. Sessions are not secure.")
     ]
@@ -32,17 +31,19 @@ def validate_config():
         if not os.getenv(key):
             missing.append(f"- {key}: {msg}")
     
+    # SQLite Cloud is optional (falls back to local)
+    if not os.getenv("SQLITE_CLOUD_URL"):
+        logger.warning("SQLITE_CLOUD_URL not set. System will use local nlpcrm.db.")
+    
     if missing:
-        logger.error("Configuration Validation Failed:")
+        logger.warning("Configuration Validation Warning:")
         for m in missing:
-            logger.error(m)
-        return False
+            logger.warning(m)
+        logger.warning("System will start, but some features (AI/Sessions) may be limited.")
     return True
 
 if __name__ == "__main__":
-    if not validate_config():
-        logger.critical("Application startup aborted due to missing configuration.")
-        sys.exit(1)
+    validate_config()
 
     try:
         app = create_app()
@@ -50,9 +51,22 @@ if __name__ == "__main__":
         logger.critical(f"Failed to initialize the Flask application: {e}", exc_info=True)
         sys.exit(1)
 
-    # Fetch port from environment variable for platforms like Render/Heroku
+    # Fetch port from environment variable, default to 5000 (Flask standard)
     port = int(os.environ.get("PORT", 5000))
     debug_mode = os.environ.get("FLASK_DEBUG", "False").lower() in ["true", "1", "yes"]
     
-    logger.info(f"Starting NLPCRM Server on port {port} (Debug: {debug_mode})")
-    app.run(host="0.0.0.0", port=port, debug=debug_mode)
+    logger.info("="*60)
+    logger.info("🚀 NLPCRM v3.1 - Neural Intelligence Platform")
+    logger.info("="*60)
+    logger.info(f"Server: http://localhost:{port}")
+    logger.info(f"Debug Mode: {debug_mode}")
+    logger.info(f"Environment: {'Development' if debug_mode else 'Production'}")
+    logger.info("="*60)
+    
+    try:
+        app.run(host="0.0.0.0", port=port, debug=debug_mode, threaded=True)
+    except KeyboardInterrupt:
+        logger.info("\n🛑 Server shutdown requested by user")
+    except Exception as e:
+        logger.critical(f"Server crashed: {e}", exc_info=True)
+        sys.exit(1)

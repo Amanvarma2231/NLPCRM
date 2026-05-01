@@ -141,22 +141,38 @@
     document.getElementById('saveToCrmBtn').addEventListener('click', async () => {
         if(!window.lastResult) return;
         const btn = document.getElementById('saveToCrmBtn');
+        const originalHtml = btn.innerHTML;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Committing...';
         btn.disabled = true;
 
         try {
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+            
+            const payload = {};
+            for (const [key, val] of Object.entries(window.lastResult)) {
+                if (typeof val === 'object' && val !== null) {
+                    payload[key] = JSON.stringify(val);
+                } else {
+                    payload[key] = val;
+                }
+            }
+
             const resp = await fetch('/contacts/add', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRFToken': csrfToken },
-                body: new URLSearchParams(window.lastResult)
+                body: new URLSearchParams(payload)
             });
-            alert('Lead committed to CRM successfully!');
-            window.location.href = '/contacts';
+            
+            if (resp.ok || resp.redirected) {
+                alert('Lead committed to CRM successfully!');
+                window.location.href = '/contacts';
+            } else {
+                throw new Error('Server response error');
+            }
         } catch(e) {
-            alert('Failed to save.');
-        } finally {
-            btn.innerHTML = '<i class="fas fa-check"></i> Commit to CRM';
+            console.error(e);
+            alert('Failed to save lead.');
+            btn.innerHTML = originalHtml;
             btn.disabled = false;
         }
     });
