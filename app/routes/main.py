@@ -9,6 +9,7 @@ from app.services.nlp_service import nlp_service
 from app.services.email_service import email_service
 from app.services.whatsapp_service import whatsapp_service
 from app.services.contact_service import contact_service
+from app.services.social_service import social_service
 
 logger = logging.getLogger("MainRoutes")
 
@@ -268,11 +269,11 @@ def sync_all():
     # 2. Pull Email inbox via POP3
     if email_service.is_configured():
         try:
-            inbox_messages = email_service.fetch_emails(max_count=5) or []
+            inbox_messages = email_service.fetch_emails(max_count=20) or []
             for m in inbox_messages:
                 text = m.get('text', '')
                 if len(text) > 10:
-                    extracted = nlp_service.extract_contact_info(text, source='Email')
+                    extracted = nlp_service.extract_contact_info(text, source=f'Email ({m.get("from", "Unknown")})')
                     json_data = _parse_json_from_llm(extracted)
                     if json_data and (json_data.get('email') or json_data.get('phone')):
                         contact_service.add_contact(json_data)
@@ -456,6 +457,24 @@ def source_outlook():
                            messages=messages,
                            icon="fab fa-microsoft",
                            is_connected=True)
+
+@main_bp.route("/sources/social")
+@login_required
+def social_scanner():
+    return render_template("social_scanner.html")
+
+@main_bp.route("/social/scan", methods=["POST"])
+@login_required
+def social_scan_route():
+    data = request.get_json(silent=True) or {}
+    text = data.get("text")
+    platform = data.get("platform", "LinkedIn")
+    
+    if not text:
+        return jsonify({"success": False, "error": "No content provided."})
+    
+    result = social_service.scan_social_content(text, source_platform=platform)
+    return jsonify(result)
 
 # --- NEW: ADDITIONAL PAGES ---
 

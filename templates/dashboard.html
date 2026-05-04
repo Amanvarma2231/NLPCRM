@@ -58,6 +58,12 @@
             </div>
 
             <div class="insight-feed" id="intelligenceFeed" style="display: flex; flex-direction: column; gap: 1.25rem;">
+                <div id="feedLoader" style="display: none;">
+                    <div class="skeleton-card"></div>
+                    <div class="skeleton-card"></div>
+                    <div class="skeleton-card"></div>
+                </div>
+                <div id="actualFeed">
                 {% if recent_contacts %}
                     {% for contact in recent_contacts %}
                     <div class="frosted-glass insight-card" onclick='viewContact({{ contact|tojson|safe }})' style="padding: 1.8rem; border-radius: 20px; display: flex; align-items: center; gap: 1.5rem; cursor: pointer; transition: all 0.3s ease;">
@@ -90,6 +96,7 @@
                         <p style="color: var(--text-muted); font-size: 0.9rem;">Lead database is currently empty. Connect sources to begin.</p>
                     </div>
                 {% endif %}
+                </div>
             </div>
         </div>
     

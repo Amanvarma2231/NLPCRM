@@ -190,6 +190,18 @@ class DBService:
         except Exception:
             logger.info("Adding created_at column to contacts table")
             cursor.execute("ALTER TABLE contacts ADD COLUMN created_at TEXT")
+
+        # Create Indexes for high performance retrieval
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_contacts_v2_company ON contacts_v2(company)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_contacts_v2_source ON contacts_v2(source)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_contacts_v2_interest ON contacts_v2(interest)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_contacts_v2_created ON contacts_v2(created_at)")
+        
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_emails_contact_id ON contact_emails(contact_id)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_emails_email ON contact_emails(email)")
+        
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_phones_contact_id ON contact_phones(contact_id)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_socials_contact_id ON contact_socials(contact_id)")
             
         self._conn.commit()
 

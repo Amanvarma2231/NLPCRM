@@ -58,6 +58,9 @@
                 <a href="{{ url_for('main.source_outlook') }}" class="nav-link {% if request.endpoint == 'main.source_outlook' %}active{% endif %}">
                     <i class="fab fa-microsoft"></i><span>Outlook / Teams</span>
                 </a>
+                <a href="{{ url_for('main.social_scanner') }}" class="nav-link {% if request.endpoint == 'main.social_scanner' %}active{% endif %}">
+                    <i class="fas fa-hashtag"></i><span>Social Intelligence</span>
+                </a>
             </div>
 
             <div class="nav-section" style="margin-top:auto;">
