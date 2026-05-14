@@ -1,238 +1,221 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="fade-in" style="max-width: 1400px; margin: 0 auto; height: 100%; display: flex; flex-direction: column;">
-    
-    <!-- Professional Connect Sources Header -->
-    <div style="margin-bottom: 3rem; padding: 2.5rem; border-radius: 12px; border: 1px solid var(--border); background: var(--sidebar-bg); display: flex; justify-content: space-between; align-items: center;">
+<div class="fade-in" style="max-width: 1300px; margin: 0 auto;">
+
+    <!-- Header -->
+    <div style="margin-bottom: 2.5rem; display: flex; justify-content: space-between; align-items: center;">
         <div>
-            <h1 style="font-size: 2.5rem; font-weight: 800; letter-spacing: -0.04em; color: #fff; margin: 0;">Connect <span style="font-weight: 400; color: var(--text-dim);">Sources</span></h1>
-            <p style="color: var(--text-muted); margin-top: 0.5rem; font-size: 0.95rem;">Securely bridge your communication channels to the Lead Intelligence engine.</p>
+            <div style="font-size: 0.7rem; font-weight: 900; color: #818cf8; text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 0.4rem;">
+                <i class="fas fa-satellite-dish"></i> SIGNAL INTELLIGENCE NETWORK
+            </div>
+            <h1 style="font-size: 2.5rem; font-weight: 900; letter-spacing: -0.04em; color: #fff; margin: 0;">
+                Connect <span style="font-weight: 400; color: var(--text-dim);">Sources</span>
+            </h1>
+            <p style="color: var(--text-muted); margin-top: 0.4rem; font-size: 0.9rem;">
+                Bridge your channels — every message is a potential lead.
+            </p>
         </div>
-        <div>
-            <button class="btn btn-secondary" onclick="window.location.href='/settings'" style="border-radius: 8px;">
-                <i class="fas fa-cog"></i> Configure Keys
-            </button>
-        </div>
-    </div>
-
-    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem;">
-        <!-- Gmail Integration -->
-        <div class="integration-card" style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 2rem; display: flex; flex-direction: column; transition: border-color 0.2s;">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
-                <div style="width: 56px; height: 56px; border-radius: 12px; background: rgba(99, 102, 241, 0.05); border: 1px solid rgba(99, 102, 241, 0.1); display: flex; align-items: center; justify-content: center;">
-                    <i class="fas fa-envelope" style="font-size: 1.8rem; color: #6366f1;"></i>
-                </div>
-                {% if email_configured %}
-                    <span style="font-size: 0.65rem; font-weight: 800; color: var(--success); text-transform: uppercase;"><span class="status-dot online"></span> Active</span>
-                {% else %}
-                    <span style="font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Not Configured</span>
-                {% endif %}
-            </div>
-            <h3 style="font-size: 1.2rem; font-weight: 800; color: #fff; margin-bottom: 0.5rem;">Email Sync</h3>
-            <p style="color: var(--text-dim); font-size: 0.85rem; line-height: 1.6; margin-bottom: 2rem;">Ingest corporate emails and threads automatically for lead extraction.</p>
-            <div style="margin-top: auto;">
-                {% if email_configured %}
-                    <button class="btn btn-secondary" style="width: 100%; border-radius: 8px;" onclick="window.location.href='/sources/email'">Analyze Inbox</button>
-                {% else %}
-                    <button class="btn btn-primary" style="width: 100%; border-radius: 8px; background: var(--primary); border: none;" onclick="window.location.href='/settings'">Configure SMTP/POP3</button>
-                {% endif %}
-            </div>
-        </div>
-
-        <!-- WhatsApp Integration -->
-        <div class="integration-card" style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 2rem; display: flex; flex-direction: column;">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
-                <div style="width: 56px; height: 56px; border-radius: 12px; background: rgba(37, 211, 102, 0.05); border: 1px solid rgba(37, 211, 102, 0.1); display: flex; align-items: center; justify-content: center;">
-                    <i class="fab fa-whatsapp" style="font-size: 1.8rem; color: #25d366;"></i>
-                </div>
-                <span style="font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Awaiting Link</span>
-            </div>
-            <h3 style="font-size: 1.2rem; font-weight: 800; color: #fff; margin-bottom: 0.5rem;">WhatsApp Sync</h3>
-            <p style="color: var(--text-dim); font-size: 0.85rem; line-height: 1.6; margin-bottom: 2rem;">Real-time intelligence from customer chats and mobile inquiries.</p>
-            <div style="margin-top: auto;">
-                <button class="btn btn-primary" style="width: 100%; border-radius: 8px; background: var(--primary); border: none;" onclick="window.location.href='/sources/whatsapp'">Connect Channel</button>
-            </div>
-        </div>
-
-        <!-- Outlook Integration -->
-        <div class="integration-card" style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 2rem; display: flex; flex-direction: column;">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem;">
-                <div style="width: 56px; height: 56px; border-radius: 12px; background: rgba(0, 120, 215, 0.05); border: 1px solid rgba(0, 120, 215, 0.1); display: flex; align-items: center; justify-content: center;">
-                    <i class="fab fa-microsoft" style="font-size: 1.8rem; color: #0078d7;"></i>
-                </div>
-                <span style="font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Enterprise Only</span>
-            </div>
-            <h3 style="font-size: 1.2rem; font-weight: 800; color: #fff; margin-bottom: 0.5rem;">Outlook / Teams</h3>
-            <p style="color: var(--text-dim); font-size: 0.85rem; line-height: 1.6; margin-bottom: 2rem;">Monitor enterprise-scale communications in Microsoft 365 environments.</p>
-            <div style="margin-top: auto;">
-                <button class="btn btn-primary" style="width: 100%; border-radius: 8px; background: var(--primary); border: none;">Activate MS Hub</button>
-            </div>
-        </div>
-    </div>
-
-    <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 2.5rem;">
-        
-        <!-- Google Workspace / Meet -->
-        <div class="card frosted-glass" style="padding: 2.5rem; border-radius: 24px; position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 1.5rem; transition: transform 0.3s ease;">
-            <div style="position: absolute; right: -20px; top: -20px; opacity: 0.05; font-size: 10rem; color: #6366f1;"><i class="fas fa-envelope"></i></div>
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; position: relative; z-index: 1;">
-                <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #6366f1, #4f46e5); border-radius: 16px; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);">
-                    <i class="fas fa-envelope-open-text" style="color: white; font-size: 1.8rem;"></i>
-                </div>
-                {% if email_configured %}
-                <span class="status-badge connected"><span class="status-dot online"></span> ACTIVE SYNC</span>
-                {% else %}
-                <span class="status-badge disconnected">NOT CONFIGURED</span>
-                {% endif %}
-            </div>
-            <div style="position: relative; z-index: 1;">
-                <h3 style="font-size: 1.4rem; font-weight: 900; color: white; margin-bottom: 0.5rem; letter-spacing: -0.02em;">Universal Email</h3>
-                <p style="color: var(--text-dim); font-size: 0.95rem; line-height: 1.6;">Secure connection via SMTP and POP3. Support for Gmail, Outlook, and private servers.</p>
-            </div>
-            <button class="btn btn-primary" style="margin-top: auto; background: var(--primary-gradient); border: none; font-weight: 800; height: 50px; border-radius: 12px;" onclick="window.location.href='/settings'">
-                Configure Credentials
-            </button>
-        </div>
-
-        <!-- WhatsApp Intelligence -->
-        <div class="card frosted-glass" style="padding: 2.5rem; border-radius: 24px; position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 1.5rem; transition: transform 0.3s ease;">
-            <div style="position: absolute; right: -20px; top: -20px; opacity: 0.05; font-size: 10rem; color: #22c55e;"><i class="fab fa-whatsapp"></i></div>
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; position: relative; z-index: 1;">
-                <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #22c55e, #16a34a); border-radius: 16px; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 20px rgba(34, 197, 94, 0.3);">
-                    <i class="fab fa-whatsapp" style="color: white; font-size: 2rem;"></i>
-                </div>
-                <span class="status-badge disconnected">WAITING FOR HANDSHAKE</span>
-            </div>
-            <div style="position: relative; z-index: 1;">
-                <h3 style="font-size: 1.4rem; font-weight: 900; color: white; margin-bottom: 0.5rem; letter-spacing: -0.02em;">WhatsApp Business</h3>
-                <p style="color: var(--text-dim); font-size: 0.95rem; line-height: 1.6;">Real-time sync for customer messages and lead sentiment tracking.</p>
-            </div>
-            <button class="btn btn-primary" style="margin-top: auto; background: var(--success-gradient); border: none; font-weight: 800; height: 50px; border-radius: 12px;" onclick="openIntegrationWizard('whatsapp')">
-                Deploy Webhook
-            </button>
-        </div>
-
-        <!-- Microsoft Teams (Live Meeting Connect) -->
-        <div class="card frosted-glass" style="padding: 2.5rem; border-radius: 24px; position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 1.5rem; transition: transform 0.3s ease; border: 1px solid rgba(14, 165, 233, 0.2);">
-            <div style="position: absolute; right: -30px; top: -30px; opacity: 0.1; font-size: 12rem; color: #0ea5e9;"><i class="fab fa-microsoft"></i></div>
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; position: relative; z-index: 1;">
-                <div style="width: 64px; height: 64px; background: var(--info-gradient); border-radius: 16px; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 20px rgba(14, 165, 233, 0.3);">
-                    <i class="fab fa-microsoft" style="color: white; font-size: 1.8rem;"></i>
-                </div>
-                <span class="status-badge connected" style="background: rgba(14, 165, 233, 0.1); color: #0ea5e9; border: 1px solid rgba(14, 165, 233, 0.3);">
-                    <span class="status-dot" style="background: #0ea5e9; box-shadow: 0 0 10px #0ea5e9;"></span> LIVE CONNECTED
+        <div style="display: flex; gap: 0.75rem; align-items: center;">
+            <!-- Live source count -->
+            <div class="frosted-glass" style="padding: 0.6rem 1.2rem; border-radius: 12px; display: flex; align-items: center; gap: 0.6rem;">
+                <div class="live-status-pulse"></div>
+                <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-dim);">
+                    {{ (1 if email_configured else 0) + 1 }} / 5 Sources Active
                 </span>
             </div>
-            <div style="position: relative; z-index: 1;">
-                <h3 style="font-size: 1.4rem; font-weight: 900; color: white; margin-bottom: 0.5rem; letter-spacing: -0.02em;">Live Meeting Intel</h3>
-                <p style="color: var(--text-dim); font-size: 0.95rem; line-height: 1.6;">Directly connect to MS Teams and Zoom meetings for real-time analysis and automated minute taking.</p>
+            <button class="btn btn-secondary" onclick="window.location.href='/settings'" style="border-radius: 10px; font-size: 0.85rem;">
+                <i class="fas fa-cog"></i> API Keys
+            </button>
+        </div>
+    </div>
+
+    <!-- PRIMARY ACTIVE SOURCES ROW -->
+    <div style="margin-bottom: 1rem;">
+        <p style="font-size: 0.65rem; font-weight: 900; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 1.2rem;">
+            <i class="fas fa-bolt" style="color: var(--primary);"></i> &nbsp;Primary Sources
+        </p>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;">
+
+            <!-- EMAIL -->
+            <div class="src-card" style="background: var(--card-bg); border: 1px solid {% if email_configured %}rgba(99,102,241,0.4){% else %}var(--border){% endif %}; border-radius: 20px; padding: 1.8rem; display: flex; flex-direction: column; gap: 1.2rem; transition: all 0.3s ease; position: relative; overflow: hidden;">
+                <div style="position: absolute; right: -15px; top: -15px; font-size: 7rem; opacity: 0.04; color: #6366f1;"><i class="fas fa-envelope"></i></div>
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; position: relative; z-index: 1;">
+                    <div style="width: 52px; height: 52px; background: linear-gradient(135deg, #6366f1, #4f46e5); border-radius: 14px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(99,102,241,0.35);">
+                        <i class="fas fa-envelope" style="color: white; font-size: 1.4rem;"></i>
+                    </div>
+                    {% if email_configured %}
+                    <span style="display: flex; align-items: center; gap: 0.4rem; padding: 0.25rem 0.75rem; background: rgba(16,185,129,0.12); color: #34d399; border-radius: 20px; font-size: 0.7rem; font-weight: 800; border: 1px solid rgba(16,185,129,0.25);">
+                        <div style="width: 5px; height: 5px; background: #34d399; border-radius: 50%; box-shadow: 0 0 6px #34d399;"></div> ACTIVE
+                    </span>
+                    {% else %}
+                    <span style="padding: 0.25rem 0.75rem; background: rgba(255,255,255,0.06); color: #64748b; border-radius: 20px; font-size: 0.7rem; font-weight: 800; border: 1px solid rgba(255,255,255,0.08);">NOT SET</span>
+                    {% endif %}
+                </div>
+                <div style="position: relative; z-index: 1;">
+                    <h3 style="font-size: 1.1rem; font-weight: 900; color: #fff; margin-bottom: 0.3rem;">Email Intelligence</h3>
+                    <p style="color: var(--text-dim); font-size: 0.82rem; line-height: 1.5;">Gmail, Outlook, any POP3/SMTP inbox. AI reads every thread to find leads.</p>
+                </div>
+                <div style="position: relative; z-index: 1; margin-top: auto;">
+                    {% if email_configured %}
+                    <button class="btn btn-secondary" style="width: 100%; justify-content: center; border-radius: 10px; height: 42px;" onclick="window.location.href='/sources/email'">
+                        <i class="fas fa-inbox"></i> Open Inbox Scanner
+                    </button>
+                    {% else %}
+                    <button class="btn btn-primary" style="width: 100%; justify-content: center; border-radius: 10px; height: 42px;" onclick="window.location.href='/settings'">
+                        <i class="fas fa-plug"></i> Configure Credentials
+                    </button>
+                    {% endif %}
+                </div>
             </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: auto; position: relative; z-index: 1;">
-                <button class="btn btn-primary" style="background: #0ea5e9; border: none; font-weight: 800; height: 50px; border-radius: 12px; font-size: 0.85rem;" onclick="openIntegrationWizard('teams')">
-                    Connect Teams
+
+            <!-- WHATSAPP -->
+            <div class="src-card" style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; padding: 1.8rem; display: flex; flex-direction: column; gap: 1.2rem; transition: all 0.3s ease; position: relative; overflow: hidden;">
+                <div style="position: absolute; right: -15px; top: -15px; font-size: 7rem; opacity: 0.04; color: #22c55e;"><i class="fab fa-whatsapp"></i></div>
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; position: relative; z-index: 1;">
+                    <div style="width: 52px; height: 52px; background: linear-gradient(135deg, #22c55e, #16a34a); border-radius: 14px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(34,197,94,0.35);">
+                        <i class="fab fa-whatsapp" style="color: white; font-size: 1.6rem;"></i>
+                    </div>
+                    <span style="display: flex; align-items: center; gap: 0.4rem; padding: 0.25rem 0.75rem; background: rgba(16,185,129,0.12); color: #34d399; border-radius: 20px; font-size: 0.7rem; font-weight: 800; border: 1px solid rgba(16,185,129,0.25);">
+                        <div style="width: 5px; height: 5px; background: #34d399; border-radius: 50%; box-shadow: 0 0 6px #34d399;"></div> WEBHOOK LIVE
+                    </span>
+                </div>
+                <div style="position: relative; z-index: 1;">
+                    <h3 style="font-size: 1.1rem; font-weight: 900; color: #fff; margin-bottom: 0.3rem;">WhatsApp Business</h3>
+                    <p style="color: var(--text-dim); font-size: 0.82rem; line-height: 1.5;">Real-time capture of customer messages with sentiment and lead scoring.</p>
+                </div>
+                <div style="position: relative; z-index: 1; margin-top: auto;">
+                    <button class="btn btn-secondary" style="width: 100%; justify-content: center; border-radius: 10px; height: 42px;" onclick="window.location.href='/sources/whatsapp'">
+                        <i class="fab fa-whatsapp"></i> Open Chat Feed
+                    </button>
+                </div>
+            </div>
+
+            <!-- SOCIAL INTELLIGENCE -->
+            <div class="src-card" style="background: var(--card-bg); border: 1px solid rgba(99,102,241,0.3); border-radius: 20px; padding: 1.8rem; display: flex; flex-direction: column; gap: 1.2rem; transition: all 0.3s ease; position: relative; overflow: hidden;">
+                <div style="position: absolute; right: -15px; top: -15px; font-size: 7rem; opacity: 0.04; color: #818cf8;"><i class="fab fa-linkedin"></i></div>
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; position: relative; z-index: 1;">
+                    <div style="width: 52px; height: 52px; background: linear-gradient(135deg, #818cf8, #6366f1); border-radius: 14px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(99,102,241,0.35);">
+                        <i class="fas fa-hashtag" style="color: white; font-size: 1.4rem;"></i>
+                    </div>
+                    <span style="display: flex; align-items: center; gap: 0.4rem; padding: 0.25rem 0.75rem; background: rgba(129,140,248,0.12); color: #818cf8; border-radius: 20px; font-size: 0.7rem; font-weight: 800; border: 1px solid rgba(129,140,248,0.3);">
+                        <div style="width: 5px; height: 5px; background: #818cf8; border-radius: 50%; box-shadow: 0 0 6px #818cf8;"></div> AI READY
+                    </span>
+                </div>
+                <div style="position: relative; z-index: 1;">
+                    <h3 style="font-size: 1.1rem; font-weight: 900; color: #fff; margin-bottom: 0.3rem;">Social Intelligence</h3>
+                    <p style="color: var(--text-dim); font-size: 0.82rem; line-height: 1.5;">Paste LinkedIn, Twitter/X, or any social content. AI extracts leads instantly.</p>
+                </div>
+                <div style="position: relative; z-index: 1; margin-top: auto;">
+                    <button class="btn btn-primary" style="width: 100%; justify-content: center; border-radius: 10px; height: 42px; background: linear-gradient(135deg, #818cf8, #6366f1); border: none;">
+                        <a href="/sources/social" style="color: inherit; text-decoration: none; display: flex; align-items: center; gap: 0.5rem; justify-content: center; width: 100%;">
+                            <i class="fas fa-search"></i> Open Scanner
+                        </a>
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- SECONDARY SOURCES ROW -->
+    <div style="margin-top: 2.5rem;">
+        <p style="font-size: 0.65rem; font-weight: 900; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 1.2rem;">
+            <i class="fas fa-network-wired" style="color: var(--text-muted);"></i> &nbsp;Enterprise Channels
+        </p>
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem;">
+
+            <!-- MS TEAMS -->
+            <div class="src-card" style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; padding: 1.8rem; display: flex; align-items: center; gap: 1.5rem; transition: all 0.3s ease; position: relative; overflow: hidden;">
+                <div style="position: absolute; right: -20px; top: -20px; font-size: 8rem; opacity: 0.03; color: #0ea5e9;"><i class="fab fa-microsoft"></i></div>
+                <div style="width: 52px; height: 52px; background: linear-gradient(135deg, #0ea5e9, #0284c7); border-radius: 14px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(14,165,233,0.3); flex-shrink: 0; position: relative; z-index: 1;">
+                    <i class="fab fa-microsoft" style="color: white; font-size: 1.4rem;"></i>
+                </div>
+                <div style="flex: 1; position: relative; z-index: 1;">
+                    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.3rem;">
+                        <h3 style="font-size: 1rem; font-weight: 900; color: #fff; margin: 0;">Outlook / Teams</h3>
+                        <span style="padding: 0.15rem 0.6rem; background: rgba(255,255,255,0.06); color: #64748b; border-radius: 20px; font-size: 0.65rem; font-weight: 800; border: 1px solid rgba(255,255,255,0.08);">ENTERPRISE</span>
+                    </div>
+                    <p style="color: var(--text-dim); font-size: 0.8rem; margin: 0;">Microsoft 365 pipeline for meeting minutes and enterprise mail analysis.</p>
+                </div>
+                <button class="btn btn-secondary" style="border-radius: 10px; font-size: 0.8rem; height: 38px; white-space: nowrap; position: relative; z-index: 1;" onclick="window.location.href='/sources/outlook'">
+                    <i class="fas fa-link"></i> Connect
                 </button>
-                <button class="btn btn-secondary" style="background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); font-weight: 800; height: 50px; border-radius: 12px; font-size: 0.85rem;" onclick="openIntegrationWizard('zoom')">
-                    Sync Zoom
-                </button>
             </div>
-        </div>
-    </div>
 
-    <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 2.5rem; margin-top: 2.5rem;">
-
-        <!-- Zoom Cloud -->
-        <div class="card premium-integration-card" style="background: rgba(17, 24, 39, 0.6); border: 1px solid rgba(255,255,255,0.03); backdrop-filter: blur(20px); border-radius: 24px; padding: 2rem; position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 1.5rem; transition: transform 0.3s ease, border-color 0.3s ease;">
-            <div style="position: absolute; right: -20px; top: -20px; opacity: 0.05; font-size: 12rem; color: #3b82f6;"><i class="fas fa-video"></i></div>
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; position: relative; z-index: 1;">
-                <div style="width: 64px; height: 64px; background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(29, 78, 216, 0.2)); border-radius: 16px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(59, 130, 246, 0.3);">
-                    <i class="fas fa-video" style="color: #60a5fa; font-size: 1.8rem;"></i>
+            <!-- ZOOM -->
+            <div class="src-card" style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; padding: 1.8rem; display: flex; align-items: center; gap: 1.5rem; transition: all 0.3s ease; position: relative; overflow: hidden;">
+                <div style="position: absolute; right: -20px; top: -20px; font-size: 8rem; opacity: 0.03; color: #3b82f6;"><i class="fas fa-video"></i></div>
+                <div style="width: 52px; height: 52px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); border-radius: 14px; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(59,130,246,0.3); flex-shrink: 0; position: relative; z-index: 1;">
+                    <i class="fas fa-video" style="color: white; font-size: 1.4rem;"></i>
                 </div>
-                {% if settings.get('ZOOM_WEBHOOK_SECRET') %}
-                <span style="display: flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0.8rem; background: rgba(16, 185, 129, 0.15); color: #34d399; border-radius: 20px; font-size: 0.75rem; font-weight: 700; border: 1px solid rgba(16, 185, 129, 0.3);">
-                    <div style="width: 6px; height: 6px; background: #34d399; border-radius: 50%;"></div> ACTIVE
-                </span>
-                {% else %}
-                <span style="display: flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0.8rem; background: rgba(255, 255, 255, 0.1); color: #94a3b8; border-radius: 20px; font-size: 0.75rem; font-weight: 700; border: 1px solid rgba(255, 255, 255, 0.1);">
-                    PENDING
-                </span>
-                {% endif %}
-            </div>
-            <div style="position: relative; z-index: 1;">
-                <h3 style="font-size: 1.4rem; font-weight: 800; color: white; margin-bottom: 0.25rem;">Zoom Network</h3>
-                <p style="color: var(--text-dim); font-size: 0.9rem; line-height: 1.5;">Ingest cloud meeting recordings, transcripts, and attendee context automatically.</p>
-            </div>
-            <div style="display: flex; gap: 0.5rem; margin-top: auto; position: relative; z-index: 1;">
-                <button class="btn btn-secondary" style="flex: 1; justify-content: center; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);" onclick="openIntegrationWizard('zoom')">
+                <div style="flex: 1; position: relative; z-index: 1;">
+                    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.3rem;">
+                        <h3 style="font-size: 1rem; font-weight: 900; color: #fff; margin: 0;">Zoom Network</h3>
+                        <span style="padding: 0.15rem 0.6rem; background: rgba(255,255,255,0.06); color: #64748b; border-radius: 20px; font-size: 0.65rem; font-weight: 800; border: 1px solid rgba(255,255,255,0.08);">WEBHOOK</span>
+                    </div>
+                    <p style="color: var(--text-dim); font-size: 0.8rem; margin: 0;">Ingest cloud recordings and attendee context from meetings automatically.</p>
+                </div>
+                <button class="btn btn-secondary" style="border-radius: 10px; font-size: 0.8rem; height: 38px; white-space: nowrap; position: relative; z-index: 1;" onclick="openIntegrationWizard('zoom')">
                     <i class="fas fa-plug"></i> Setup Hook
                 </button>
-                <button class="btn btn-primary" style="flex: 1; justify-content: center; background: linear-gradient(135deg, rgba(59, 130, 246, 0.6), rgba(37, 99, 235, 0.8)); border: none;" onclick="document.getElementById('extractBtn').click();">
-                    <i class="fas fa-upload"></i> Upload
-                </button>
             </div>
-        </div>
 
-        <!-- MS Teams -->
-        <div class="card premium-integration-card" style="background: rgba(17, 24, 39, 0.6); border: 1px solid rgba(255,255,255,0.03); backdrop-filter: blur(20px); border-radius: 24px; padding: 2rem; position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 1.5rem; transition: transform 0.3s ease, border-color 0.3s ease;">
-            <div style="position: absolute; right: -20px; top: -20px; opacity: 0.05; font-size: 12rem; color: #8b5cf6;"><i class="fab fa-microsoft"></i></div>
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; position: relative; z-index: 1;">
-                <div style="width: 64px; height: 64px; background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(109, 40, 217, 0.2)); border-radius: 16px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(139, 92, 246, 0.3);">
-                    <i class="fab fa-microsoft" style="color: #a78bfa; font-size: 2rem;"></i>
-                </div>
-                {% if settings.get('TEAMS_APP_SECRET') %}
-                <span style="display: flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0.8rem; background: rgba(16, 185, 129, 0.15); color: #34d399; border-radius: 20px; font-size: 0.75rem; font-weight: 700; border: 1px solid rgba(16, 185, 129, 0.3);">
-                    <div style="width: 6px; height: 6px; background: #34d399; border-radius: 50%;"></div> CONNECTED
-                </span>
-                {% else %}
-                <span style="display: flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0.8rem; background: rgba(255, 255, 255, 0.1); color: #94a3b8; border-radius: 20px; font-size: 0.75rem; font-weight: 700; border: 1px solid rgba(255, 255, 255, 0.1);">
-                    PENDING
-                </span>
-                {% endif %}
-            </div>
-            <div style="position: relative; z-index: 1;">
-                <h3 style="font-size: 1.4rem; font-weight: 800; color: white; margin-bottom: 0.25rem;">Microsoft Teams</h3>
-                <p style="color: var(--text-dim); font-size: 0.9rem; line-height: 1.5;">Direct graph pipeline for enterprise meeting minutes and action item generation.</p>
-            </div>
-            <div style="display: flex; gap: 0.5rem; margin-top: auto; position: relative; z-index: 1;">
-                <button class="btn btn-secondary" style="flex: 1; justify-content: center; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);" onclick="openIntegrationWizard('teams')">
-                    <i class="fas fa-link"></i> Integrate App
-                </button>
-                <button class="btn btn-primary" style="flex: 1; justify-content: center; background: linear-gradient(135deg, rgba(139, 92, 246, 0.6), rgba(109, 40, 217, 0.8)); border: none;" onclick="document.getElementById('extractBtn').click();">
-                    <i class="fas fa-upload"></i> Upload
-                </button>
-            </div>
         </div>
-
-        <!-- Social Intelligence -->
-        <div class="card premium-integration-card" style="background: rgba(17, 24, 39, 0.6); border: 1px solid rgba(255,255,255,0.03); backdrop-filter: blur(20px); border-radius: 24px; padding: 2rem; position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 1.5rem; transition: transform 0.3s ease, border-color 0.3s ease;">
-            <div style="position: absolute; right: -20px; top: -20px; opacity: 0.05; font-size: 12rem; color: #0077b5;"><i class="fab fa-linkedin"></i></div>
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; position: relative; z-index: 1;">
-                <div style="width: 64px; height: 64px; background: linear-gradient(135deg, rgba(0, 119, 181, 0.2), rgba(0, 85, 128, 0.2)); border-radius: 16px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(0, 119, 181, 0.3);">
-                    <i class="fas fa-hashtag" style="color: #0077b5; font-size: 1.8rem;"></i>
-                </div>
-                <span style="display: flex; align-items: center; gap: 0.4rem; padding: 0.3rem 0.8rem; background: rgba(99, 102, 241, 0.15); color: #818cf8; border-radius: 20px; font-size: 0.75rem; font-weight: 700; border: 1px solid rgba(99, 102, 241, 0.3);">
-                    <div style="width: 6px; height: 6px; background: #818cf8; border-radius: 50%;"></div> AI READY
-                </span>
-            </div>
-            <div style="position: relative; z-index: 1;">
-                <h3 style="font-size: 1.4rem; font-weight: 800; color: white; margin-bottom: 0.25rem;">Social Intelligence</h3>
-                <p style="color: var(--text-dim); font-size: 0.9rem; line-height: 1.5;">Scan LinkedIn, Twitter, and public feeds. Extract leads from profiles and posts using AI.</p>
-            </div>
-            <div style="display: flex; gap: 0.5rem; margin-top: auto; position: relative; z-index: 1;">
-                <button class="btn btn-primary" style="flex: 1; justify-content: center; background: linear-gradient(135deg, #6366f1, #4f46e5); border: none; font-weight: 800; height: 44px; border-radius: 10px;" onclick="window.location.href='/sources/social'">
-                    <i class="fas fa-search"></i> Open Scanner
-                </button>
-            </div>
-        </div>
-
     </div>
+
+    <!-- SYNC ALL BANNER -->
+    <div class="frosted-glass" style="margin-top: 2.5rem; padding: 1.5rem 2rem; border-radius: 20px; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(204,255,0,0.12); background: linear-gradient(135deg, rgba(204,255,0,0.03), transparent);">
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <div style="width: 44px; height: 44px; background: var(--primary-soft); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                <i class="fas fa-sync-alt" style="color: var(--primary); font-size: 1.1rem;"></i>
+            </div>
+            <div>
+                <div style="font-size: 0.9rem; font-weight: 800; color: #fff; margin-bottom: 0.2rem;">Sync All Sources Now</div>
+                <div style="font-size: 0.78rem; color: var(--text-muted);">Pull latest data from all configured channels and extract leads with AI.</div>
+            </div>
+        </div>
+        <button id="syncAllBtn" class="btn btn-primary" style="border-radius: 12px; font-size: 0.9rem; padding: 0.75rem 2rem; background: var(--primary-gradient); border: none; color: #000; font-weight: 900;" onclick="triggerSyncAll()">
+            <i class="fas fa-bolt"></i> Sync All & Extract
+        </button>
+    </div>
+
 </div>
 
 <style>
-    .premium-integration-card:hover {
-        transform: translateY(-5px);
-        border-color: rgba(99, 102, 241, 0.3) !important;
-        box-shadow: 0 15px 35px rgba(0,0,0,0.3);
-    }
+.src-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(129, 140, 248, 0.35) !important;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+}
 </style>
+
+<script>
+function triggerSyncAll() {
+    const btn = document.getElementById('syncAllBtn');
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing...';
+    btn.disabled = true;
+    
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+    fetch('/sync-all', { method: 'POST', headers: { 'X-CSRFToken': csrfToken } })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                showToast(`✅ Synced successfully! ${data.synced_count || 0} new leads found.`, 'success', 5000);
+            } else {
+                showToast('Sync complete. Check sources for more config.', 'info');
+            }
+        })
+        .catch(() => showToast('Could not connect to sync engine.', 'error'))
+        .finally(() => {
+            btn.innerHTML = orig;
+            btn.disabled = false;
+        });
+}
+
+function openIntegrationWizard(type) {
+    showToast(`${type.toUpperCase()} integration wizard coming soon. Configure via API Keys.`, 'info');
+}
+</script>
 {% endblock %}

@@ -197,38 +197,60 @@ class ContactService:
         return True
 
     def get_contacts(self):
-        """Retrieve all contacts mapped back to the structured format required by the UI"""
+        """Retrieve all contacts — optimized with bulk joins (no N+1 queries)"""
         cursor = self._execute("""
             SELECT id, name, company, job_title, source, interest, created_at, updated_at, sentiment, importance_score, urgency, summary
             FROM contacts_v2
             ORDER BY datetime(created_at) DESC
         """)
         if not cursor: return []
+        rows = cursor.fetchall()
+        if not rows: return []
+        
+        contact_ids = [r[0] for r in rows]
+        placeholders = ",".join("?" * len(contact_ids))
+        
+        # Bulk fetch emails for all contacts at once
+        em_cur = self._execute(f"SELECT contact_id, label, email, is_primary FROM contact_emails WHERE contact_id IN ({placeholders})", contact_ids)
+        emails_map = {}
+        if em_cur:
+            for em_row in em_cur.fetchall():
+                emails_map.setdefault(em_row[0], []).append(em_row)
+        
+        # Bulk fetch phones
+        ph_cur = self._execute(f"SELECT contact_id, label, phone, is_primary FROM contact_phones WHERE contact_id IN ({placeholders})", contact_ids)
+        phones_map = {}
+        if ph_cur:
+            for ph_row in ph_cur.fetchall():
+                phones_map.setdefault(ph_row[0], []).append(ph_row)
+        
+        # Bulk fetch socials
+        so_cur = self._execute(f"SELECT contact_id, platform, url_handle FROM contact_socials WHERE contact_id IN ({placeholders})", contact_ids)
+        socials_map = {}
+        if so_cur:
+            for so_row in so_cur.fetchall():
+                socials_map.setdefault(so_row[0], []).append(so_row)
         
         results = []
-        for row in cursor.fetchall():
+        for row in rows:
             c_id, name, company, job_title, source, interest, created_at, updated_at, sentiment, importance_score, urgency, summary = row
             
-            # Fetch associative data
-            emails_cur = self._execute("SELECT label, email, is_primary FROM contact_emails WHERE contact_id = ?", (c_id,))
-            emails = emails_cur.fetchall() if emails_cur else []
-            primary_email = next((e[1] for e in emails if e[2]), (emails[0][1] if emails else ""))
-            extra_emails = [{"label": e[0], "value": e[1]} for e in emails if not e[2]]
+            emails = emails_map.get(c_id, [])
+            primary_email = next((e[2] for e in emails if e[3]), (emails[0][2] if emails else ""))
+            extra_emails = [{"label": e[1], "value": e[2]} for e in emails if not e[3]]
             
-            phones_cur = self._execute("SELECT label, phone, is_primary FROM contact_phones WHERE contact_id = ?", (c_id,))
-            phones = phones_cur.fetchall() if phones_cur else []
-            primary_phone = next((p[1] for p in phones if p[2]), (phones[0][1] if phones else ""))
+            phones = phones_map.get(c_id, [])
+            primary_phone = next((p[2] for p in phones if p[3]), (phones[0][2] if phones else ""))
             
-            socials_cur = self._execute("SELECT platform, url_handle FROM contact_socials WHERE contact_id = ?", (c_id,))
-            socials = socials_cur.fetchall() if socials_cur else []
-            social_list = [{"label": s[0], "value": s[1]} for s in socials]
+            socials = socials_map.get(c_id, [])
+            social_list = [{"label": s[1], "value": s[2]} for s in socials]
 
             results.append({
                 "id": c_id,
                 "name": name,
                 "company": company,
                 "job_title": job_title,
-                "source": source,
+                "source": source or "Manual",
                 "interest": interest,
                 "created_at": created_at,
                 "email": primary_email,
