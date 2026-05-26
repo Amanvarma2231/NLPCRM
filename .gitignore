@@ -114,3 +114,5 @@ yarn.lock
 .cache/
 models/
 checkpoints/
+
+.history/
