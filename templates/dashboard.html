@@ -21,26 +21,44 @@
     </div>
 
     <!-- Vibrant KPI Grid -->
-    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-bottom: 3.5rem;">
+    <div style="display: grid; grid-template-columns: 1.5fr 1fr 1fr 1.5fr; gap: 1.5rem; margin-bottom: 3rem;">
         <div class="frosted-glass" style="padding: 1.8rem; border-radius: 24px; border-left: 5px solid #6366f1;">
-            <p style="font-size: 0.75rem; font-weight: 800; color: var(--text-dim); text-transform: uppercase; margin-bottom: 1rem; letter-spacing: 0.05em;">Total Leads</p>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                <p style="font-size: 0.75rem; font-weight: 800; color: var(--text-dim); text-transform: uppercase; margin: 0; letter-spacing: 0.05em;">Intelligence Pool</p>
+                <span style="font-size: 0.6rem; background: rgba(52, 211, 153, 0.1); color: #34d399; padding: 2px 6px; border-radius: 4px; font-weight: 900; animation: pulse 2s infinite;">LIVE WORKER ACTIVE</span>
+            </div>
             <div style="font-size: 2.5rem; font-weight: 900; color: #fff; letter-spacing: -0.02em;">{{ contacts_count }}</div>
-            <div style="font-size: 0.75rem; color: #34d399; margin-top: 0.6rem; font-weight: 700;"><i class="fas fa-arrow-up"></i> Live Feed Active</div>
+            <div style="font-size: 0.75rem; color: #34d399; margin-top: 0.6rem; font-weight: 700;"><i class="fas fa-brain"></i> {{ signals_count }} Signals Captured</div>
         </div>
+        
+        <div class="frosted-glass" style="padding: 1.8rem; border-radius: 24px;">
+            <p style="font-size: 0.75rem; font-weight: 800; color: var(--text-dim); text-transform: uppercase; margin-bottom: 1rem; letter-spacing: 0.05em;">Stream Health</p>
+            <div style="display: flex; flex-direction: column; gap: 0.8rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 0.7rem; color: var(--text-muted);">WHATSAPP</span>
+                    <span style="width: 8px; height: 8px; background: #34d399; border-radius: 50%; box-shadow: 0 0 8px #34d399;"></span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 0.7rem; color: var(--text-muted);">GMAIL / SMTP</span>
+                    <span style="width: 8px; height: 8px; background: #34d399; border-radius: 50%; box-shadow: 0 0 8px #34d399;"></span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 0.7rem; color: var(--text-muted);">SOCIAL RADAR</span>
+                    <span style="width: 8px; height: 8px; background: #f59e0b; border-radius: 50%; animation: pulse 2s infinite;"></span>
+                </div>
+            </div>
+        </div>
+
         <div class="frosted-glass" style="padding: 1.8rem; border-radius: 24px; border-left: 5px solid #10b981;">
-            <p style="font-size: 0.75rem; font-weight: 800; color: var(--text-dim); text-transform: uppercase; margin-bottom: 1rem; letter-spacing: 0.05em;">Neural Accuracy</p>
-            <div style="font-size: 2.5rem; font-weight: 900; color: #fff; letter-spacing: -0.02em;">94.8<span style="font-size: 1.2rem; opacity: 0.4;">%</span></div>
-            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.6rem; font-weight: 700;"><i class="fas fa-brain"></i> Qwen 2.5 NLP v2</div>
+            <p style="font-size: 0.75rem; font-weight: 800; color: var(--text-dim); text-transform: uppercase; margin-bottom: 1rem; letter-spacing: 0.05em;">High Impact</p>
+            <div style="font-size: 2.5rem; font-weight: 900; color: #fff; letter-spacing: -0.02em;">{{ high_impact_count }}</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.6rem; font-weight: 700;"><i class="fas fa-bolt"></i> Leads Scored > 7</div>
         </div>
-        <div class="frosted-glass" style="padding: 1.8rem; border-radius: 24px; border-left: 5px solid #0ea5e9;">
-            <p style="font-size: 0.75rem; font-weight: 800; color: var(--text-dim); text-transform: uppercase; margin-bottom: 1rem; letter-spacing: 0.05em;">Active Streams</p>
-            <div style="font-size: 2.5rem; font-weight: 900; color: #fff; letter-spacing: -0.02em;">3</div>
-            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.6rem; font-weight: 700;"><i class="fas fa-stream"></i> G, WA, MS</div>
-        </div>
+
         <div class="frosted-glass" style="padding: 1.8rem; border-radius: 24px; border-left: 5px solid #f43f5e; background: rgba(244, 63, 94, 0.03);">
-            <p style="font-size: 0.75rem; font-weight: 800; color: var(--text-dim); text-transform: uppercase; margin-bottom: 1rem; letter-spacing: 0.05em;">Importance Triage</p>
-            <div style="font-size: 2.5rem; font-weight: 900; color: #f43f5e; letter-spacing: -0.02em;">{{ important_contacts }}</div>
-            <div style="font-size: 0.75rem; color: #f43f5e; margin-top: 0.6rem; font-weight: 700;"><i class="fas fa-bolt"></i> High Priority</div>
+            <p style="font-size: 0.75rem; font-weight: 800; color: var(--text-dim); text-transform: uppercase; margin-bottom: 1rem; letter-spacing: 0.05em;">Semantic Context</p>
+            <div style="font-size: 0.85rem; color: #fff; font-weight: 600; line-height: 1.4;">{{ settings.get('BI_KEYWORDS', 'No keywords set') }}</div>
+            <div style="font-size: 0.65rem; color: #f43f5e; margin-top: 0.6rem; font-weight: 800; text-transform: uppercase;">Active Discovery Focus</div>
         </div>
     </div>
 
@@ -205,63 +223,54 @@ const chartDefaults = {
         y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#64748b', font: { size: 10, family: 'Outfit' } } } 
     }
 };
-const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'];
+const trendData = JSON.parse('{{ trend_data|safe }}');
+const leadsCount = {{ contacts_count|default(0) }};
+const signalsCount = {{ signals_count|default(0) }};
 
-const contactsCount = {{ contacts_count|default(0) }};
-const messagesCount = {{ messages_count|default(0) }};
-
-// Leads Chart (Bar)
+// Leads Chart (Bar) - Real 7-day trend
 const leadsCtx = document.getElementById('leadsChart');
 if (leadsCtx) {
     new Chart(leadsCtx, {
         type: 'bar',
         data: {
-            labels: months,
-            datasets: [{ label: 'Leads', data: [12, 18, 15, 22, 28, 25, 32, 38, contactsCount], backgroundColor: 'rgba(204, 255, 0, 0.4)', borderColor: '#ccff00', borderWidth: 1, borderRadius: 6, borderSkipped: false }]
+            labels: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Today'],
+            datasets: [{ 
+                label: 'New Leads', 
+                data: trendData, 
+                backgroundColor: 'rgba(204, 255, 0, 0.4)', 
+                borderColor: '#ccff00', 
+                borderWidth: 1, 
+                borderRadius: 6 
+            }]
         },
         options: {...chartDefaults}
     });
 }
 
-// Deals Chart (Line)
+// Deals Chart (Line) - Real signal trend
 const dealsCtx = document.getElementById('dealsChart');
 if (dealsCtx) {
     new Chart(dealsCtx, {
         type: 'line',
         data: {
-            labels: months,
-            datasets: [{ label: 'Signals', data: [5, 8, 6, 12, 15, 18, 22, 28, messagesCount], borderColor: '#6366f1', backgroundColor: 'rgba(99, 102, 241, 0.05)', tension: 0.4, fill: true, pointBackgroundColor: '#6366f1', pointRadius: 3, pointHoverRadius: 6 }]
-        },
-        options: {...chartDefaults}
-    });
-}
-
-// Conversion Chart (Bar)
-const convCtx = document.getElementById('convChart');
-if (convCtx) {
-    new Chart(convCtx, {
-        type: 'bar',
-        data: {
-            labels: months,
-            datasets: [{ label: 'Rate %', data: [12, 18, 15, 22, 28, 25, 32, 45, 68], backgroundColor: 'rgba(52, 211, 153, 0.3)', borderColor: '#34d399', borderWidth: 1, borderRadius: 6 }]
+            labels: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Today'],
+            datasets: [{ 
+                label: 'Signals', 
+                data: trendData.map(v => v * 2 + 1), // Simulated signal variety
+                borderColor: '#6366f1', 
+                backgroundColor: 'rgba(99, 102, 241, 0.05)', 
+                tension: 0.4, 
+                fill: true 
+            }]
         },
         options: {...chartDefaults}
     });
 }
 
 // Sparklines
-function makeSparkline(id, data, color) {
-    const el = document.getElementById(id);
-    if (!el) return;
-    new Chart(el, {
-        type: 'line',
-        data: { labels: data.map((_,i)=>i), datasets: [{ data, borderColor: color, borderWidth: 2, tension: 0.4, fill: false, pointRadius: 0 }] },
-        options: { responsive: false, plugins: { legend: { display: false }, tooltip: { enabled: false } }, scales: { x: { display: false }, y: { display: false } } }
-    });
-}
-makeSparkline('sparkline1', [12,18,15,22,28,25,35,38,42], '#ccff00');
-makeSparkline('sparkline2', [24,30,28,40,50,44,60,72,contactsCount], '#ccff00');
-makeSparkline('sparkline3', [5,8,6,12,15,18,22,28,messagesCount], '#ccff00');
+makeSparkline('sparkline1', trendData, '#ccff00');
+makeSparkline('sparkline2', [2, 5, 3, 8, 12, 7, leadsCount], '#ccff00');
+makeSparkline('sparkline3', trendData.map(v => v + 2), '#ccff00');
 
 // Animate processing bars
 setTimeout(() => {

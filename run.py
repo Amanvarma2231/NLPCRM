@@ -20,6 +20,61 @@ logging.basicConfig(
 )
 logger = logging.getLogger('NLPCRM_Server')
 
+import threading
+import time
+
+def background_intelligence_loop(app):
+    """Periodically triggers the sync-all intelligence loop."""
+    with app.app_context():
+        from app.services.email_service import email_service
+        from app.services.whatsapp_service import whatsapp_service
+        from app.services.nlp_service import nlp_service
+        from app.services.contact_service import contact_service
+        from app.services.db_service import db_service
+        
+        logger.info("Background Intelligence Worker: INITIALIZED")
+        
+        while True:
+            try:
+                # 1. Pull WhatsApp
+                wa_messages = whatsapp_service.fetch_messages() or []
+                for m in wa_messages:
+                    text = m.get('text', '')
+                    if len(text) > 10:
+                        extracted = nlp_service.extract_contact_info(text, source=m.get('source', 'Live WhatsApp'))
+                        # Robust extraction
+                        import json
+                        try:
+                            start = extracted.find('{')
+                            end = extracted.rfind('}') + 1
+                            if start != -1 and end != -1:
+                                contact_data = json.loads(extracted[start:end])
+                                if contact_data.get('name') or contact_data.get('email'):
+                                    contact_service.add_contact(contact_data)
+                                    logger.info(f"LIVE SIGNAL: Extracted lead {contact_data.get('name')}")
+                        except: pass
+
+                # 2. Pull Email
+                if email_service.is_configured():
+                    inbox = email_service.fetch_emails(max_count=5) or []
+                    for m in inbox:
+                        text = m.get('text', '')
+                        extracted = nlp_service.extract_contact_info(text, source=f'Live Email ({m.get("from")})')
+                        try:
+                            start = extracted.find('{')
+                            end = extracted.rfind('}') + 1
+                            if start != -1 and end != -1:
+                                contact_data = json.loads(extracted[start:end])
+                                if contact_data.get('name'):
+                                    contact_service.add_contact(contact_data)
+                        except: pass
+
+            except Exception as e:
+                logger.error(f"Background worker error: {e}")
+            
+            # Wait for 10 minutes before next sweep
+            time.sleep(600) 
+
 def validate_config():
     """Ensure critical environment variables are present before starting."""
     required_keys = [
@@ -47,6 +102,9 @@ if __name__ == "__main__":
 
     try:
         app = create_app()
+        # Start Background Intelligence Worker
+        worker_thread = threading.Thread(target=background_intelligence_loop, args=(app,), daemon=True)
+        worker_thread.start()
     except Exception as e:
         logger.critical(f"Failed to initialize the Flask application: {e}", exc_info=True)
         sys.exit(1)

@@ -21,27 +21,26 @@ class NLPService:
             "Content-Type": "application/json"
         } if HF_API_KEY else {}
         
-        self.system_prompt = """You are an elite, highly precise enterprise CRM Assistant. 
-Your job is to extract business contact entities from raw text (emails, social media profiles, chat logs, or posts) and output them strictly as a JSON object.
+        self.system_prompt = """You are an elite, highly precise enterprise CRM Intelligence Engine. 
+Your job is to perform deep semantic analysis on raw text (emails, social media, posts) to identify and extract high-value business leads.
 
-CRITICAL RULES:
-1. ONLY return the raw JSON. No markdown wrappers.
-2. Extraction Focus:
-   - Search for contact info in email signatures, social media 'about' sections, or post content.
-   - If multiple contacts exist, extract the primary one or the one with the most info.
-3. Use EXACTLY these keys:
-   - "name" (Full name)
-   - "email" (Work or primary email)
-   - "phone" (Mobile or office number)
-   - "company" (Current organization)
-   - "job_title" (Official role)
-   - "interest" (Must be: "High", "Medium", "Low", "Support", or "New")
-   - "sentiment" (Must be: "Positive", "Negative", or "Neutral")
-   - "importance_score" (0-10 based on deal size or hierarchy)
-   - "urgency" (High/Medium/Low)
-   - "summary" (Contextual summary including the source of interest)
+CRITICAL EXTRACTION SCHEMA:
+1. ONLY return raw JSON. No conversational text.
+2. Use EXACTLY these keys:
+   - "name": Full name of the lead.
+   - "email": Primary work or contact email.
+   - "phone": Contact number.
+   - "social_id": LinkedIn/Twitter handle, profile ID, or URL found in text.
+   - "company": Current organization or affiliation.
+   - "job_title": Current official role.
+   - "interest": ["High", "Medium", "Low", "Support", "New"]
+   - "sentiment": ["Positive", "Negative", "Neutral"]
+   - "importance_score": (0-10) based on seniority and business potential.
+   - "urgency": ["High", "Medium", "Low"]
+   - "match_reason": A short explanation of why this lead matches the business context (e.g. "CEO of target Fintech sector").
+   - "summary": A strategic summary of the lead's intent and context.
 
-If info is missing, use "". Do not invent data."""
+If info is missing, use "". If the content is spam or completely unrelated to business growth, return an empty object {}."""
 
     def query_model(self, prompt, source="Unknown"):
         if not HF_API_KEY:
@@ -203,7 +202,20 @@ Answer the user concisely as a CRM consultant. Use facts from the context. If yo
         return '{"name": "Unknown Entity", "interest": "New"}'
 
     def extract_contact_info(self, text, source="Unknown"):
+        """Extracts structured contact JSON from raw text using AI with semantic filtering."""
         logger.info(f"Extracting contact info from {source} (Length: {len(text)})")
-        return self.query_model(text, source)
+        
+        # Fetch Business Context for Semantic Filtering
+        from app.services.db_service import db_service
+        settings = db_service.get_settings()
+        bi_keywords = settings.get("BI_KEYWORDS", "")
+        bi_profile = settings.get("BI_PROFILE", "")
+        
+        context_prompt = ""
+        if bi_keywords or bi_profile:
+            context_prompt = f"\n\n--- BUSINESS INTELLIGENCE FILTER ---\nTarget Keywords: {bi_keywords}\nIdeal Profile: {bi_profile}\nRule: ONLY extract if the text relates to this business focus. If irrelevant, return empty JSON {{}}.\n------------------------------------"
+
+        full_prompt = f"{text}{context_prompt}"
+        return self.query_model(full_prompt, source=source)
 
 nlp_service = NLPService()

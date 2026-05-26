@@ -1497,4 +1497,65 @@ textarea {
 @keyframes fadeInQuick {
     from { opacity: 0; transform: translateY(5px); }
     to { opacity: 1; transform: translateY(0); }
-}
+}
+
+/* Radar Animations */
+.radar-container {
+    min-height: 200px;
+}
+.radar-ping {
+    position: absolute;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, var(--primary) 0%, transparent 70%);
+    opacity: 0;
+    z-index: 1;
+}
+.radar-container.active .radar-ping {
+    animation: radar-ping 4s infinite linear;
+}
+.radar-circle {
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    border: 1px solid rgba(204, 255, 0, 0.1);
+    border-radius: 50%;
+    z-index: 1;
+}
+.radar-line {
+    position: absolute;
+    width: 50%;
+    height: 2px;
+    background: linear-gradient(90deg, var(--primary), transparent);
+    top: 50%;
+    left: 50%;
+    transform-origin: left center;
+    z-index: 1;
+    display: none;
+}
+.radar-container.active .radar-line {
+    display: block;
+    animation: radar-rotate 2s infinite linear;
+}
+
+@keyframes radar-ping {
+    0% { transform: scale(0); opacity: 0.5; }
+    100% { transform: scale(1); opacity: 0; }
+}
+@keyframes radar-rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.stat-mini {
+    background: rgba(255,255,255,0.03);
+    padding: 0.5rem 0.8rem;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); opacity: 1; box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
+    70% { transform: scale(1.1); opacity: 0.8; box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); }
+    100% { transform: scale(1); opacity: 1; box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+}

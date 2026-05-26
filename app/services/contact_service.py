@@ -82,13 +82,14 @@ class ContactService:
         
         primary_email = contact_data.get("email", "").strip()
         primary_phone = contact_data.get("phone", "").strip()
+        social_id = contact_data.get("social_id", "").strip()
         
         sentiment = contact_data.get("sentiment", "Neutral")
         importance_score = contact_data.get("importance_score", 0)
         urgency = contact_data.get("urgency", "Low")
         summary = contact_data.get("summary", "")
         
-        known = {"name", "company", "job_title", "source", "interest", "email", "phone", "email2", "social_media", "sentiment", "importance_score", "urgency", "summary"}
+        known = {"name", "company", "job_title", "source", "interest", "email", "phone", "social_id", "email2", "social_media", "sentiment", "importance_score", "urgency", "summary"}
         extra = {k: v for k, v in contact_data.items() if k not in known}
         extra_json = json.dumps(extra) if extra else ""
 
@@ -181,6 +182,10 @@ class ContactService:
                 self._execute("INSERT INTO contact_phones (contact_id, label, phone, is_primary) VALUES (?, 'Primary', ?, 1)", (contact_id, primary_phone))
 
         # Socials
+        if social_id:
+            platform = "LinkedIn" if "linkedin" in social_id.lower() else ("Twitter" if "twitter" in social_id.lower() or "x.com" in social_id.lower() else "Social")
+            self._execute("INSERT INTO contact_socials (contact_id, platform, url_handle) VALUES (?, ?, ?)", (contact_id, platform, social_id))
+
         social_media = contact_data.get("social_media", "[]")
         try:
             socials = json.loads(social_media)

@@ -101,7 +101,44 @@ def dashboard():
     source_filter = request.args.get('source')
     contacts = contact_service.get_contacts() or []
     
-    # Apply source filter if provided
+    # Calculate Real Metrics & Trends
+    from datetime import datetime, timedelta
+    now = datetime.now()
+    today_str = now.strftime("%Y-%m-%d")
+    
+    leads_today = 0
+    high_impact_count = 0
+    trend_data = [0] * 7 # Last 7 days
+    sentiment_stats = {"Positive": 0, "Negative": 0, "Neutral": 0}
+    priority_stats = {"High": 0, "Medium": 0, "Low": 0}
+    total_importance = 0
+    
+    for c in contacts:
+        # Sentiment & Priority
+        s = c.get('sentiment', 'Neutral')
+        if s in sentiment_stats: sentiment_stats[s] += 1
+        p = c.get('urgency') or c.get('interest', 'Low')
+        if p in priority_stats: priority_stats[p] += 1
+        
+        # Importance
+        try:
+            val = float(c.get('importance_score', 0))
+            total_importance += val
+            if val >= 7: high_impact_count += 1
+        except: pass
+        
+        # Created at & Trends
+        c_date = c.get('created_at', '')
+        if today_str in c_date:
+            leads_today += 1
+        try:
+            dt = datetime.fromisoformat(c_date.split('T')[0])
+            diff = (now - dt).days
+            if 0 <= diff < 7:
+                trend_data[6 - diff] += 1
+        except: pass
+
+    # Apply Source Filtering for display
     if source_filter:
         if source_filter == 'teams':
             filtered_contacts = [c for c in contacts if (c.get('source') or '').lower() in ['teams', 'outlook', 'microsoft']]
@@ -110,57 +147,27 @@ def dashboard():
     else:
         filtered_contacts = contacts
 
-    contacts_count = len(contacts)
-    messages = whatsapp_service.fetch_messages() or []
-    messages_count = len(messages)
-    
-    # Use filtered contacts for the feed
-    recent_contacts = filtered_contacts[-8:][::-1] if filtered_contacts else []
+    # Prepare Display Data
+    recent_contacts = filtered_contacts[:8] # Already sorted by DESC in service
     recent_activity = db_service.get_recent_activity(limit=5) or []
     settings = db_service.get_settings() or {}
+    avg_importance = round(total_importance / len(contacts), 1) if contacts else 0
     
-    sentiment_stats = {"Positive": 0, "Negative": 0, "Neutral": 0}
-    priority_stats = {"High": 0, "Medium": 0, "Low": 0}
-    total_importance = 0
-    important_contacts = 0
+    # Signals count estimation
+    signals_count = len(recent_activity) * 3 + leads_today 
     
-    for c in contacts:
-        s = c.get('sentiment', 'Neutral')
-        if s in sentiment_stats: sentiment_stats[s] += 1
-        p = c.get('urgency') or c.get('interest', 'Low')
-        if p in priority_stats: priority_stats[p] += 1
-        imp = c.get('importance_score', 0)
-        try:
-            val = float(imp)
-            total_importance += val
-            if val > 7: important_contacts += 1
-        except: pass
-            
-    avg_importance = round(total_importance / contacts_count, 1) if contacts_count > 0 else 0
-    error_msg = request.args.get('error_msg')
-
-    # Sanitize recent activity to avoid None errors in templates
-    sanitized_activity = []
-    for act in recent_activity:
-        sanitized_activity.append([
-            act[0] or 'activity',
-            act[1] or 'Admin',
-            act[2] or 'System',
-            act[3] or 'Operation completed successfully.',
-            act[4] or ''
-        ])
-
     return render_template("dashboard.html", 
-                           contacts_count=contacts_count, 
-                           messages_count=messages_count, 
-                           recent_contacts=recent_contacts, 
-                           recent_activity=sanitized_activity,
+                           contacts=recent_contacts,
+                           contacts_count=len(contacts),
+                           leads_today=leads_today,
+                           high_impact_count=high_impact_count,
+                           signals_count=signals_count,
+                           recent_activity=recent_activity,
                            settings=settings,
-                           error_msg=error_msg,
+                           trend_data=json.dumps(trend_data),
                            sentiment_stats=sentiment_stats,
                            priority_stats=priority_stats,
-                           avg_importance=avg_importance,
-                           important_contacts=important_contacts)
+                           avg_importance=avg_importance)
 
 @main_bp.route("/contacts")
 @login_required
@@ -462,6 +469,12 @@ def source_outlook():
 @login_required
 def social_scanner():
     return render_template("social_scanner.html")
+
+@main_bp.route("/discovery")
+@login_required
+def discovery():
+    settings = db_service.get_settings()
+    return render_template("discovery.html", settings=settings)
 
 @main_bp.route("/social/scan", methods=["POST"])
 @login_required

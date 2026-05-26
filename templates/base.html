@@ -61,6 +61,9 @@
                 <a href="{{ url_for('main.social_scanner') }}" class="nav-link {% if request.endpoint == 'main.social_scanner' %}active{% endif %}">
                     <i class="fas fa-hashtag"></i><span>Social Intelligence</span>
                 </a>
+                <a href="{{ url_for('main.discovery') }}" class="nav-link {% if request.endpoint == 'main.discovery' %}active{% endif %}">
+                    <i class="fas fa-radar"></i><span>Lead Discovery</span>
+                </a>
             </div>
 
             <div class="nav-section" style="margin-top:auto;">

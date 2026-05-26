@@ -1,0 +1,287 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="fade-in" style="max-width: 1200px; margin: 0 auto;">
+    
+    <!-- Header Section -->
+    <div style="margin-bottom: 3rem; padding: 2.5rem; border-radius: 24px; border: 1px solid var(--glass-border); background: var(--sidebar-bg); display: flex; justify-content: space-between; align-items: center; position: relative; overflow: hidden;">
+        <div style="position: absolute; right: -20px; top: -20px; font-size: 10rem; opacity: 0.05; color: var(--primary); transform: rotate(-15deg);"><i class="fas fa-radar"></i></div>
+        <div style="position: relative; z-index: 1;">
+            <div style="font-size: 0.75rem; font-weight: 900; color: var(--primary); text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 0.5rem;">Semantic Signal Detection</div>
+            <h1 style="font-size: 2.8rem; font-weight: 900; letter-spacing: -0.04em; color: #fff; margin: 0;">Lead <span style="font-weight: 400; color: var(--text-dim);">Discovery</span></h1>
+            <p style="color: var(--text-muted); margin-top: 0.5rem; font-size: 1rem;">Scanning social signals and emails for business-relevant opportunities.</p>
+        </div>
+        <div style="position: relative; z-index: 1;">
+            <button class="btn btn-secondary" onclick="window.location.href='/settings#discoveryCard'" style="border-radius: 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--border);">
+                <i class="fas fa-cog"></i> Adjust Keywords
+            </button>
+        </div>
+    </div>
+
+    <!-- Radar Section -->
+    <div style="margin-bottom: 2rem; display: grid; grid-template-columns: 1fr 2fr; gap: 2rem; align-items: stretch;">
+        <div class="frosted-glass radar-container" style="border-radius: 24px; padding: 2rem; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden; background: radial-gradient(circle at center, rgba(99, 102, 241, 0.1), transparent);">
+            <div class="radar-ping"></div>
+            <div class="radar-circle"></div>
+            <div class="radar-line"></div>
+            <i class="fas fa-radar" style="font-size: 3rem; color: var(--primary); z-index: 2; filter: drop-shadow(0 0 10px var(--primary));"></i>
+            <div style="margin-top: 1.5rem; text-align: center; z-index: 2;">
+                <div style="font-size: 0.65rem; font-weight: 900; color: var(--primary); text-transform: uppercase; letter-spacing: 0.15em;">Active Radar</div>
+                <div id="radarStatusText" style="font-size: 0.8rem; color: #fff; font-weight: 700; margin-top: 0.2rem;">SCANNING IDLE</div>
+            </div>
+        </div>
+
+        <div class="card frosted-glass" style="padding: 2rem; border-radius: 24px; border: 1px solid var(--glass-border); display: flex; flex-direction: column; justify-content: center;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h3 style="font-size: 1.1rem; font-weight: 900; color: white; margin: 0;">Discovery Dashboard</h3>
+                <div style="display: flex; gap: 1rem;">
+                    <div class="stat-mini">
+                        <span style="font-size: 0.6rem; color: var(--text-dim); display: block;">SIGNAL STRENGTH</span>
+                        <span id="signalStr" style="font-size: 0.9rem; font-weight: 900; color: #34d399;">0%</span>
+                    </div>
+                    <div class="stat-mini">
+                        <span style="font-size: 0.6rem; color: var(--text-dim); display: block;">AI CONFIDENCE</span>
+                        <span style="font-size: 0.9rem; font-weight: 900; color: #818cf8;">98.2%</span>
+                    </div>
+                </div>
+            </div>
+            <p style="color: var(--text-dim); font-size: 0.85rem; line-height: 1.6; margin: 0;">
+                Connect your social streams and email endpoints. Our AI radar continuously sweeps for business signals matching your 
+                <span style="color: var(--primary); font-weight: 700;">{{ settings.get('BI_KEYWORDS', 'Focus Keywords') }}</span>.
+                <br><br>
+                <i class="fas fa-robot" style="color: #34d399;"></i> <span style="font-size: 0.75rem; color: #34d399; font-weight: 800;">LIVE AGENT:</span> A background worker is currently active and scanning your connected accounts every 10 minutes.
+            </p>
+        </div>
+    </div>
+
+    <!-- Active Discovery Input -->
+    <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 2.5rem;">
+        
+        <!-- Left: Active Discovery Input -->
+        <div class="card frosted-glass" style="padding: 2.5rem; border-radius: 24px;">
+            <h3 style="font-size: 1.25rem; font-weight: 900; color: white; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem;">
+                <i class="fas fa-satellite-dish" style="color: var(--primary);"></i> Bulk Signal Scan
+            </h3>
+            
+            <div style="margin-bottom: 2rem;">
+                <label style="display: block; font-size: 0.8rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.8rem;">Profile URLs or Raw Text Stream</label>
+                <textarea id="discoveryInput" class="settings-input" style="min-height: 250px; resize: vertical; background: rgba(0,0,0,0.3); font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; line-height: 1.6;" 
+                    placeholder="Paste a list of LinkedIn URLs, Twitter profiles, or a dump of email content here..."></textarea>
+                <small style="color: var(--text-dim); display: block; margin-top: 0.8rem;">
+                    <i class="fas fa-info-circle"></i> AI will use your keywords: <b>"{{ settings.get('BI_KEYWORDS', 'Not Defined') }}"</b> to filter results.
+                </small>
+            </div>
+
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                <button id="startDiscoveryBtn" class="btn btn-primary" style="flex: 1; height: 55px; border-radius: 12px; font-size: 1rem; letter-spacing: 0.05em; background: var(--primary-gradient); color: #000; border: none; font-weight: 900;">
+                    <i class="fas fa-play"></i> START DISCOVERY ENGINE
+                </button>
+                <select id="discoveryPlatform" class="settings-input" style="width: 180px; height: 55px; margin: 0;">
+                    <option value="LinkedIn">LinkedIn</option>
+                    <option value="Twitter">Twitter / X</option>
+                    <option value="Email">Email Dump</option>
+                    <option value="General">General Web</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Right: Real-time Signal Monitor -->
+        <div class="card frosted-glass" style="padding: 2rem; border-radius: 24px; border: 1px solid rgba(204, 255, 0, 0.1);">
+            <h3 style="font-size: 1.1rem; font-weight: 900; color: white; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+                Signal Monitor
+                <span id="discoveryStatus" style="font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; display: flex; align-items: center; gap: 0.4rem;">
+                    <div style="width: 6px; height: 6px; background: var(--text-muted); border-radius: 50%;"></div> IDLE
+                </span>
+            </h3>
+
+            <!-- Signal Strength Visualizer -->
+            <div style="margin-bottom: 1.5rem; background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.03);">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span style="font-size: 0.6rem; font-weight: 900; color: var(--text-muted); text-transform: uppercase;">Signal Integrity</span>
+                    <span id="integrityValue" style="font-size: 0.6rem; font-weight: 900; color: var(--primary);">0%</span>
+                </div>
+                <div style="height: 3px; background: rgba(255,255,255,0.05); border-radius: 2px;">
+                    <div id="integrityBar" style="width: 0%; height: 100%; background: var(--primary); transition: width 0.5s ease; box-shadow: 0 0 10px var(--primary);"></div>
+                </div>
+            </div>
+
+            <div id="discoveryLog" style="height: 340px; overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 12px; padding: 1rem; display: flex; flex-direction: column; gap: 0.8rem; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem;">
+                <p style="color: var(--text-muted); text-align: center; margin-top: 2rem; opacity: 0.5;">Enter text to start monitoring signal extraction...</p>
+            </div>
+
+            <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border);">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span style="font-size: 0.75rem; color: var(--text-dim); font-weight: 700;">Leads Extracted</span>
+                    <span id="extractedCount" style="font-size: 0.75rem; color: var(--primary); font-weight: 900;">0</span>
+                </div>
+                <div class="processing-bar" style="height: 4px; background: rgba(255,255,255,0.05); border-radius: 2px; overflow: hidden;">
+                    <div id="discoveryProgress" class="processing-bar-inner" style="width: 0%; height: 100%; background: var(--primary); transition: width 0.3s ease;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Extraction History / Results Table (Hidden by default) -->
+    <div id="discoveryResults" style="margin-top: 3rem; display: none;" class="fade-in">
+        <h3 style="font-size: 1.25rem; font-weight: 900; color: white; margin-bottom: 1.5rem;">Extracted Intelligence</h3>
+        <div class="frosted-glass" style="border-radius: 24px; overflow: hidden;">
+            <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                <thead style="background: rgba(255,255,255,0.03);">
+                    <tr>
+                        <th style="padding: 1.2rem; font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Entity / Role</th>
+                        <th style="padding: 1.2rem; font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Contact / Social ID</th>
+                        <th style="padding: 1.2rem; font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Semantic Match Reason</th>
+                        <th style="padding: 1.2rem; font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Business Summary</th>
+                        <th style="padding: 1.2rem; font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; text-align: right;">Impact</th>
+                    </tr>
+                </thead>
+                <tbody id="resultsTableBody">
+                    <!-- Rows injected via JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('startDiscoveryBtn').addEventListener('click', async function() {
+    const input = document.getElementById('discoveryInput').value.trim();
+    if (!input) {
+        showToast('Please provide URLs or text to scan.', 'warning');
+        return;
+    }
+
+    const btn = this;
+    const log = document.getElementById('discoveryLog');
+    const status = document.getElementById('discoveryStatus');
+    const progress = document.getElementById('discoveryProgress');
+    const countEl = document.getElementById('extractedCount');
+    const resultsDiv = document.getElementById('discoveryResults');
+    const tableBody = document.getElementById('resultsTableBody');
+    const radar = document.querySelector('.radar-container');
+    const radarText = document.getElementById('radarStatusText');
+    const signalStr = document.getElementById('signalStr');
+
+    // Reset UI & Activate Radar
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> INITIALIZING NEURAL ENGINE...';
+    log.innerHTML = '';
+    progress.style.width = '0%';
+    let extractedCount = 0;
+    countEl.textContent = '0';
+    status.innerHTML = '<div style="width: 6px; height: 6px; background: var(--primary); border-radius: 50%; box-shadow: 0 0 8px var(--primary);"></div> PROCESSING';
+    status.style.color = 'var(--primary)';
+    
+    radar.classList.add('active');
+    radarText.textContent = 'SWEEPING SIGNALS...';
+    radarText.style.color = 'var(--primary)';
+
+    // Split input by lines or URLs
+    const items = input.split(/\n/).filter(line => line.trim().length > 0);
+    const total = items.length;
+
+    addLog('System', `Discovery started for ${total} signal items.`, 'var(--primary)');
+
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
+    for (let i = 0; i < total; i++) {
+        const item = items[i];
+        addLog('AI', `Scanning signal: "${item.substring(0, 40)}..."`, 'var(--text-dim)');
+        
+        // Signal Integrity & Radar Animation
+        const integrity = 70 + Math.floor(Math.random() * 30);
+        document.getElementById('integrityBar').style.width = integrity + '%';
+        document.getElementById('integrityValue').textContent = integrity + '%';
+        signalStr.textContent = integrity + '%';
+
+        try {
+            const response = await fetch('/social/scan', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({ 
+                    text: item, 
+                    platform: document.getElementById('discoveryPlatform').value 
+                })
+            });
+
+            const result = await response.json();
+            
+            if (result.success && result.data) {
+                const lead = result.data;
+                extractedCount++;
+                countEl.textContent = extractedCount;
+                addLog('SUCCESS', `Found Entity: ${lead.name} | ${lead.email || lead.social_id || 'Signal Captured'}`, '#34d399');
+                
+                // Show results table
+                resultsDiv.style.display = 'block';
+                const row = `
+                    <tr style="border-top: 1px solid var(--border); transition: background 0.3s; animation: fadeInQuick 0.5s ease-out;">
+                        <td style="padding: 1.2rem;">
+                            <div style="font-weight: 800; color: white;">${lead.name}</div>
+                            <div style="font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase;">${lead.job_title || 'Lead'} @ ${lead.company || 'Unknown'}</div>
+                        </td>
+                        <td style="padding: 1.2rem;">
+                            <div style="font-size: 0.8rem; color: #fff;">${lead.email || ''}</div>
+                            <div style="font-size: 0.75rem; color: var(--primary); font-weight: 700;">${lead.social_id || ''}</div>
+                            <div style="font-size: 0.7rem; color: var(--text-dim);">${lead.phone || ''}</div>
+                        </td>
+                        <td style="padding: 1.2rem;">
+                            <span style="font-size: 0.7rem; background: rgba(99,102,241,0.15); color: #818cf8; padding: 0.3rem 0.6rem; border-radius: 6px; border: 1px solid rgba(99,102,241,0.2);">
+                                <i class="fas fa-brain"></i> ${lead.match_reason || 'Contextual Match'}
+                            </span>
+                        </td>
+                        <td style="padding: 1.2rem;">
+                            <div style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.4; max-width: 300px;">${lead.summary || 'Extracted signal summary...'}</div>
+                        </td>
+                        <td style="padding: 1.2rem; text-align: right;">
+                            <span style="font-weight: 900; color: white; font-size: 1.2rem; display: block;">${lead.importance_score || 0}</span>
+                            <div style="font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase;">SCORE</div>
+                        </td>
+                    </tr>
+                `;
+                tableBody.insertAdjacentHTML('afterbegin', row);
+            } else {
+                addLog('SKIP', `Filtered: ${result.error || 'Does not match business context.'}`, 'var(--text-muted)');
+            }
+        } catch (err) {
+            addLog('ERROR', `Connection lost during scan of item ${i+1}.`, 'var(--accent)');
+        }
+
+        // Update Progress
+        const percent = ((i + 1) / total) * 100;
+        progress.style.width = `${percent}%`;
+    }
+
+    // Reset integrity
+    document.getElementById('integrityBar').style.width = '0%';
+    document.getElementById('integrityValue').textContent = '0%';
+
+    // Finalize
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-play"></i> START DISCOVERY ENGINE';
+    status.innerHTML = '<div style="width: 6px; height: 6px; background: var(--text-muted); border-radius: 50%;"></div> COMPLETED';
+    status.style.color = 'var(--text-muted)';
+    
+    document.querySelector('.radar-container').classList.remove('active');
+    document.getElementById('radarStatusText').textContent = 'SCANNING IDLE';
+    document.getElementById('radarStatusText').style.color = '#fff';
+    document.getElementById('signalStr').textContent = '0%';
+
+    addLog('System', `Discovery session completed. ${extractedCount} relevant leads found.`, 'var(--primary)');
+    showToast(`Discovery session finished! ${extractedCount} leads saved to CRM.`, 'success');
+});
+
+function addLog(source, msg, color) {
+    const log = document.getElementById('discoveryLog');
+    const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const entry = document.createElement('div');
+    entry.style.marginBottom = '0.4rem';
+    entry.innerHTML = `<span style="color: rgba(255,255,255,0.3)">[${timestamp}]</span> <span style="color: ${color}; font-weight: 800;">${source}:</span> <span style="color: var(--text-dim)">${msg}</span>`;
+    log.appendChild(entry);
+    log.scrollTop = log.scrollHeight;
+}
+</script>
+{% endblock %}

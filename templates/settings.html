@@ -24,10 +24,34 @@
                     </button>
                 </div>
 
+                <!-- Business Intelligence (Keywords & Semantic Search) -->
+                <div class="card settings-card" id="discoveryCard">
+                    <div class="card-header">
+                        <div class="icon-wrapper" style="background: rgba(204, 255, 0, 0.1); color: var(--primary);"><i class="fas fa-search-dollar"></i></div>
+                        <div>
+                            <h3>Discovery & Semantic Search</h3>
+                            <p class="help-text">Define your business focus for precise lead extraction.</p>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label>Target Business Keywords</label>
+                            <input type="text" name="BI_KEYWORDS" class="settings-input" placeholder="Real Estate, SaaS, AI, Marketing, Fintech..." value="{{ settings.get('BI_KEYWORDS', '') }}">
+                            <small class="field-hint">Comma separated keywords. AI uses these to filter and prioritize signals.</small>
+                        </div>
+                        <div class="form-group">
+                            <label>Ideal Customer Profile (Semantic Context)</label>
+                            <textarea name="BI_PROFILE" class="settings-input" style="min-height: 100px; resize: vertical;" placeholder="e.g. Founders or CEOs of tech startups interested in AI automation...">{{ settings.get('BI_PROFILE', '') }}</textarea>
+                            <small class="field-hint">Detailed description of who you are looking for. AI will use this for high-precision semantic matching.</small>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Unified Source Selector Modal (Mock/UI) -->
                 <div id="sourceSelector" class="frosted-glass" style="display: none; margin-bottom: 1.5rem; padding: 1.5rem; border-radius: 16px; border: 1px solid var(--primary); background: rgba(99, 102, 241, 0.1);">
                     <p style="font-size: 0.8rem; font-weight: 800; color: var(--primary); text-transform: uppercase; margin-bottom: 1rem;">Select Intelligence Source to Configure</p>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem;">
+                        <button type="button" class="source-opt-btn" onclick="scrollToSource('discoveryCard')"><i class="fas fa-search-dollar"></i> Business Keywords</button>
                         <button type="button" class="source-opt-btn" onclick="scrollToSource('emailCard')"><i class="fas fa-envelope"></i> Email (SMTP/POP3)</button>
                         <button type="button" class="source-opt-btn" onclick="scrollToSource('whatsappCard')"><i class="fab fa-whatsapp"></i> WhatsApp</button>
                         <button type="button" class="source-opt-btn" onclick="scrollToSource('zoomCard')"><i class="fas fa-video"></i> Zoom</button>
