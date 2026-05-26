@@ -97,18 +97,18 @@ def validate_config():
         logger.warning("System will start, but some features (AI/Sessions) may be limited.")
     return True
 
+validate_config()
+try:
+    app = create_app()
+    # Start Background Intelligence Worker (only if it's the main process or configured to run in gunicorn)
+    # Note: running background threads in gunicorn requires care, but we will start it here.
+    worker_thread = threading.Thread(target=background_intelligence_loop, args=(app,), daemon=True)
+    worker_thread.start()
+except Exception as e:
+    logger.critical(f"Failed to initialize the Flask application: {e}", exc_info=True)
+    sys.exit(1)
+
 if __name__ == "__main__":
-    validate_config()
-
-    try:
-        app = create_app()
-        # Start Background Intelligence Worker
-        worker_thread = threading.Thread(target=background_intelligence_loop, args=(app,), daemon=True)
-        worker_thread.start()
-    except Exception as e:
-        logger.critical(f"Failed to initialize the Flask application: {e}", exc_info=True)
-        sys.exit(1)
-
     # Fetch port from environment variable, default to 5000 (Flask standard)
     port = int(os.environ.get("PORT", 5000))
     debug_mode = os.environ.get("FLASK_DEBUG", "False").lower() in ["true", "1", "yes"]

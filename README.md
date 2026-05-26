@@ -81,16 +81,6 @@
 
 ## 🛠️ Quick Start
 
-### Windows (Automated Setup)
-
-```powershell
-# Run the setup script
-setup.bat
-
-# Start the application
-start.bat
-```
-
 ### Manual Setup
 
 #### 1. Clone Repository
